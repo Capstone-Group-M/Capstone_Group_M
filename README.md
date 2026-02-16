@@ -12,6 +12,60 @@ Example:
 A pilot recieves over a hundred NOTAMs for his flight, our system will filter out the most important NOTAMs and display them first. 
 
 ---
+## Repo Structure
+.
+│
+├── README.md
+├── docs/                     # architecture diagrams, specs
+│
+├── frontend/                 # React app (Firebase hosted)
+│   ├── public/
+│   ├── src/
+│   │   ├── api/              # HTTP calls to backend
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── utils/
+│   │   └── App.tsx
+│   ├── package.json
+│   └── firebase.json
+│
+├── backend/                  # Java service (Render deploy)
+│   ├── src/main/java/
+│   │   └── com/notam/
+│   │       ├── controller/   # REST/gRPC endpoints
+│   │       ├── service/      # business logic
+│   │       ├── client/       # FAA API client
+│   │       ├── cache/        # Firestore interface
+│   │       ├── model/
+│   │       └── util/
+│   ├── src/main/resources/
+│
+├── cli/                      # command-line client
+│   ├── src/
+│   │   ├── commands/
+│   │   ├── api/
+│   │   └── main.*
+│   └── README.md
+│
+├── proto/                    # gRPC contracts
+│   └── notam.proto
+│
+├── scripts/                  # dev + deployment scripts
+│   ├── build.sh
+│   ├── deploy.sh
+│   └── seed-db.sh
+│
+├── config/                   # environment configs
+│   ├── dev.env
+│   ├── prod.env
+│   └── firebase.rules
+│
+└── .github/
+    └── workflows/            # CI/CD pipelines
+        ├── backend.yml
+        └── frontend.yml
+
 
 ## Features
 - Obtain NOTAMs (Pending)
