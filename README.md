@@ -44,9 +44,9 @@ A pilot recieves over a hundred NOTAMs for his flight, our system will filter ou
 
 
 ## Technologies Used
-- Language(s): Python, JavaScript
+- Language(s): Java, JavaScript
 - Libraries / Frameworks: React
-- Tools: Git Hub, Git, FAA NOTAMs API, FireBase
+- Tools: Git Hub, Git, FAA NOTAMs API, FireBase, Render
 
 
 ## Installation
