@@ -1,0 +1,72 @@
+[
+  {
+    "notamId": "KOKC-001",
+    "airportCode": "KOKC",
+    "type": "RUNWAY",
+    "classification": "CRITICAL",
+    "effectiveStart": "2026-03-20T12:00:00Z",
+    "effectiveEnd": "2026-03-20T20:00:00Z",
+    "description": "Runway 17R/35L closed due to pavement maintenance.",
+    "location": "KOKC",
+    "altitudeRestriction": null,
+    "isActive": true
+  },
+  {
+    "notamId": "KTUL-001",
+    "airportCode": "KTUL",
+    "type": "NAV_AID",
+    "classification": "CRITICAL",
+    "effectiveStart": "2026-03-19T00:00:00Z",
+    "effectiveEnd": "2026-03-21T23:59:00Z",
+    "description": "ILS Runway 18L out of service.",
+    "location": "KTUL",
+    "altitudeRestriction": null,
+    "isActive": true
+  },
+  {
+    "notamId": "KTUL-002",
+    "airportCode": "KTUL",
+    "type": "AIRSPACE",
+    "classification": "CRITICAL",
+    "effectiveStart": "2026-03-19T14:00:00Z",
+    "effectiveEnd": "2026-03-19T18:00:00Z",
+    "description": "Temporary Flight Restriction within 5 NM due to VIP movement.",
+    "location": "KTUL",
+    "altitudeRestriction": "Surface to 3000 ft AGL",
+    "isActive": true
+  },
+
+  { "notamId": "KOKC-002", "airportCode": "KOKC", "type": "TAXIWAY", "classification": "IMPORTANT", "effectiveStart": "2026-03-18T00:00:00Z", "effectiveEnd": "2026-03-25T23:59:00Z", "description": "Taxiway Bravo closed between B3 and B5.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+  { "notamId": "KOKC-003", "airportCode": "KOKC", "type": "LIGHTING", "classification": "IMPORTANT", "effectiveStart": "2026-03-19T22:00:00Z", "effectiveEnd": "2026-03-20T06:00:00Z", "description": "Approach lighting system Runway 13 inoperative.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+  { "notamId": "KTUL-003", "airportCode": "KTUL", "type": "RUNWAY", "classification": "IMPORTANT", "effectiveStart": "2026-03-15T00:00:00Z", "effectiveEnd": "2026-03-22T23:59:00Z", "description": "Runway 08/26 shortened by 800 ft due to construction.", "location": "KTUL", "altitudeRestriction": null, "isActive": true },
+  { "notamId": "KTUL-004", "airportCode": "KTUL", "type": "WEATHER_EQUIPMENT", "classification": "IMPORTANT", "effectiveStart": "2026-03-10T00:00:00Z", "effectiveEnd": "2026-03-30T23:59:00Z", "description": "AWOS maintenance in progress; possible intermittent outages.", "location": "KTUL", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-004", "airportCode": "KOKC", "type": "OBSTACLE", "classification": "ADVISORY", "effectiveStart": "2026-03-01T00:00:00Z", "effectiveEnd": "2026-06-01T23:59:00Z", "description": "Construction crane 18 NM NE of airport.", "location": "18NM NE OF KOKC", "altitudeRestriction": "450 ft AGL", "isActive": true },
+  { "notamId": "KOKC-005", "airportCode": "KOKC", "type": "WILDLIFE", "classification": "ADVISORY", "effectiveStart": "2026-03-10T00:00:00Z", "effectiveEnd": "2026-04-10T23:59:00Z", "description": "Increased bird activity near midfield.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "GLOBAL-001", "airportCode": "GLOBAL", "type": "INTERNATIONAL", "classification": "ADVISORY", "effectiveStart": "2026-01-01T00:00:00Z", "effectiveEnd": "2026-12-31T23:59:00Z", "description": "Advisory regarding conflict zone in Central Africa.", "location": "Congo Region", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-006", "airportCode": "KOKC", "type": "RUNWAY", "classification": "CRITICAL", "effectiveStart": "2026-02-01T00:00:00Z", "effectiveEnd": "2026-02-02T00:00:00Z", "description": "Runway 13/31 closed due to snow removal.", "location": "KOKC", "altitudeRestriction": null, "isActive": false },
+
+  { "notamId": "KOKC-007", "airportCode": "KOKC", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-01T00:00:00Z", "effectiveEnd": "2026-03-31T23:59:00Z", "description": "Grass cutting in progress adjacent to runway.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-008", "airportCode": "KOKC", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-05T00:00:00Z", "effectiveEnd": "2026-04-01T23:59:00Z", "description": "Bird activity reported south of field.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-009", "airportCode": "KOKC", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-05T00:00:00Z", "effectiveEnd": "2026-04-01T23:59:00Z", "description": "Temporary signage installed near taxiway C.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KTUL-005", "airportCode": "KTUL", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-07T00:00:00Z", "effectiveEnd": "2026-04-07T23:59:00Z", "description": "Bird activity reported west of runway 18L.", "location": "KTUL", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KTUL-006", "airportCode": "KTUL", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-08T00:00:00Z", "effectiveEnd": "2026-04-08T23:59:00Z", "description": "Vehicle operations near ramp area.", "location": "KTUL", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KTUL-007", "airportCode": "KTUL", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-09T00:00:00Z", "effectiveEnd": "2026-04-09T23:59:00Z", "description": "Maintenance equipment parked near taxiway A.", "location": "KTUL", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-010", "airportCode": "KOKC", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-11T00:00:00Z", "effectiveEnd": "2026-04-11T23:59:00Z", "description": "Grass mowing operations north of field.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-011", "airportCode": "KOKC", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-12T00:00:00Z", "effectiveEnd": "2026-04-12T23:59:00Z", "description": "Temporary construction fencing near taxiway D.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KOKC-012", "airportCode": "KOKC", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-13T00:00:00Z", "effectiveEnd": "2026-04-13T23:59:00Z", "description": "Wildlife hazard advisory east of runway 17L.", "location": "KOKC", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "KTUL-008", "airportCode": "KTUL", "type": "ADVISORY", "classification": "ADVISORY", "effectiveStart": "2026-03-14T00:00:00Z", "effectiveEnd": "2026-04-14T23:59:00Z", "description": "Temporary ramp congestion expected during peak hours.", "location": "KTUL", "altitudeRestriction": null, "isActive": true },
+
+  { "notamId": "GLOBAL-002", "airportCode": "GLOBAL", "type": "INTERNATIONAL", "classification": "ADVISORY", "effectiveStart": "2026-01-01T00:00:00Z", "effectiveEnd": "2026-12-31T23:59:00Z", "description": "General advisory regarding operations over Eastern Europe.", "location": "Eastern Europe", "altitudeRestriction": null, "isActive": true }
+]
