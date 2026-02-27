@@ -1,0 +1,32 @@
+These instructions are to help you compile and run backend
+
+Prerequisites:
+Java 17+
+Maven 3.9+
+Internet connection (for FAA API)
+
+Maven needs to be installed.
+    - Check if its already intalled. On mac try: 
+    ~ mvn -v
+    
+If not installed, install maven on mac with:
+    ~ brew install maven
+
+For the first-time setup do:
+    ~ mvn clean install
+
+To compile first go to Capstone_Group_M/backend/
+Then compile with 
+    ~ mvn compile
+
+Once compiled you can check specific .java files with:
+    ~ mvn exec:java -Dexec.mainClass="your.location.yourjava"
+example:
+    ~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main"
+
+If you want run "~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main""
+you will need to create a local enviromnent variable below are instructions 
+how to do so.
+
+In terminal
+    ~ export FAA_CLIENT_SECRET=<secret_key_value>
