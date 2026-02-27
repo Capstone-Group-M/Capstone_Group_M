@@ -5,9 +5,9 @@ package com.notam.model;
 import java.time.ZonedDateTime;
 import java.util.List; // List of translations
 
-public class Notam {
+public class NOTAM {
 
-    // Basic identification of NATOM 
+    // Basic identification of NOTAM 
     private String id;
     private String number;
     private String series;
@@ -15,7 +15,7 @@ public class Notam {
     private String accountId;
     private String icaoLocation;
 
-    // Times of NATOM
+    // Times of NOTAM
     private ZonedDateTime issued;
     private ZonedDateTime effectiveStart;
     private ZonedDateTime effectiveEnd;
