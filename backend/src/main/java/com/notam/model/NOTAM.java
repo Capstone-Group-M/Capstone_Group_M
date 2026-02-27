@@ -38,15 +38,43 @@ public class NOTAM {
     private String text;
     private List<NotamTranslation> translations;
 
+    // Full constructor with all fields
+    public NOTAM(String id, String number, String series, String type, String accountId, String icaoLocation, ZonedDateTime issued, ZonedDateTime effectiveStart,
+             ZonedDateTime effectiveEnd, ZonedDateTime lastUpdated, String location, String minimumFL, String maximumFL, String coordinates,
+             String classification, String traffic, String purpose, String scope, String selectionCode, String text, List<NotamTranslation> translations) {
+
+        this.id = id;
+        this.number = number;
+        this.series = series;
+        this.type = type;
+        this.accountId = accountId;
+        this.icaoLocation = icaoLocation;
+        this.issued = issued;
+        this.effectiveStart = effectiveStart;
+        this.effectiveEnd = effectiveEnd;
+        this.lastUpdated = lastUpdated;
+        this.location = location;
+        this.minimumFL = minimumFL;
+        this.maximumFL = maximumFL;
+        this.coordinates = coordinates;
+        this.classification = classification;
+        this.traffic = traffic;
+        this.purpose = purpose;
+        this.scope = scope;
+        this.selectionCode = selectionCode;
+        this.text = text;
+        this.translations = translations;
+    }
+
     // Constructor for id, number, and location
-    public Notam(String id, String number, String location) {
+    public NOTAM(String id, String number, String location) {
         this.id = id;
         this.number = number;
         this.location = location;
     }
 
     // Default constructor 
-    public Notam() {}
+    public NOTAM() {}
 
     // Read and write for NOTAM fields 
     // ID
