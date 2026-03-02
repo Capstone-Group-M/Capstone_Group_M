@@ -5,6 +5,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.Scanner;
+import java.util.List;
+import com.notam.parser.NotamParser;
+import com.notam.model.NOTAM;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,32 +73,16 @@ public class Main {
             if (code > 200 || code < 300){
                 //from Jackson Library used to parse JSON object        
                 ObjectMapper mapper = new ObjectMapper();
-
-                //takes repsonse and converts it to a navigable JSON tree object
-                JsonNode root = mapper.readTree(response.body());
-
-                //retrieves the "items" key from JSON object
-                JsonNode items = root.get("items");
-
-                //check if Notam was recieved
-                if (items.isEmpty()) {
-                    System.out.println("No NOTAMs found.");
-                } else {
-                    for (JsonNode notam : items) {
-                        System.out.println("----- NOTAM -----");
-                        JsonNode textNode = notam.path("properties")
-                                                .path("coreNOTAMData")
-                                                .path("notam")
-                                                .path("text");
-
-                        if (!textNode.isMissingNode() && !textNode.isNull() && !textNode.asText().isBlank()) {
-                            System.out.println(textNode.asText());
-                        } else {
-                            System.out.println("No text field found. Full object:");
-                            System.out.println(notam.toPrettyString());
-                        }
-                    }
-                }
+                NotamParser parser = new NotamParser(mapper);                
+                List<NOTAM> notams = parser.parsePage(response);
+                
+                int index = 0;
+                for (NOTAM notam : notams){
+                    index++;
+                    System.out.println("------NOTAM------ number: "+ index);
+                    System.out.println("---text---\n" + notam.getText());
+                    System.out.println("---issued---\n" + notam.getIssued());
+                }    
             }
             else{
                 System.err.println("There was an error connecting to client. Error code = " + String.valueOf(code));
