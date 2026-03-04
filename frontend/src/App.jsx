@@ -1,3 +1,5 @@
+import "./services/firebase";
+
 function App() {
   return (
     <div style={{ padding: 24 }}>
@@ -6,5 +8,7 @@ function App() {
     </div>
   );
 }
+
+console.log("App.jsx loaded");
 
 export default App;
