@@ -1,16 +1,35 @@
-# React + Vite
+# Frontend – NOTAM Analyzer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React frontend for the NOTAM Analyzer project. It was initialized using React and Vite.
 
-Currently, two official plugins are available:
+## Requirements
+Node.js (LTS recommended)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Check that Node and npm are installed:
 
-## React Compiler
+node -v  
+npm -v
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the ESLint configuration
+Navigate to the frontend directory from the project root:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+cd frontend
+
+Install dependencies:
+
+npm install
+
+## Run the Development Server
+
+Start the React development server:
+
+npm run dev
+
+The application will run locally at:
+
+http://localhost:5173
+
+## Notes
+
+The frontend uses Vite for fast development builds and will serve as the foundation for upcoming features such as the airport input form, NOTAM display components, and Firebase integration.
