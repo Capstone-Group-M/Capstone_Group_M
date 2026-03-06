@@ -17,55 +17,66 @@ A pilot recieves over a hundred NOTAMs for his flight, our system will filter ou
 ```
 .
 ├── README.md
-├── docs/                     # architecture diagrams, specs
-
-├── frontend/                 # React app (Firebase hosted)
-│   ├── public/
-│   ├── src/
-│   │   ├── api/              # HTTP calls to backend
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── utils/
-│   │   └── App.tsx
+├── Ticket_2_Unit_Test_Examples
+│   ├── NotamUtils.cpp
+│   ├── NotamUtils.java
+│   ├── NotamUtils.py
+│   ├── NotamUtilsTest.cpp
+│   ├── NotamUtilsTest.java
+│   └── NotamUtilsTest.py
+├── backend
+│   ├── Instructions.txt
+│   ├── pom.xml
+│   ├── src
+│   │   ├── main
+│   │   │   ├── java
+│   │   │   │   └── com
+│   │   │   │       └── notam
+│   │   │   │           ├── controller
+│   │   │   │           │   └── Main.java
+│   │   │   │           └── model
+│   │   │   │               └── NOTAM.java
+│   │   │   └── resources
+│   │   └── test
+│   │       ├── java
+│   │       └── resources
+│   │           └── mock_notams.json
+│   └── target
+│       ├── classes
+│       │   └── com
+│       │       └── notam
+│       │           ├── controller
+│       │           │   └── Main.class
+│       │           └── model
+│       │               ├── NOTAM$NotamTranslation.class
+│       │               └── NOTAM.class
+│       └── test-classes
+│           └── mock_notams.json
+├── cli
+│   └── NotamCLI.java
+├── config
+├── docs
+│   ├── CapstoneArchitecture.drawio
+│   ├── CapstoneArchitecture.drawio.html
+│   └── notam_characteristics.md
+├── frontend
+│   ├── README.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
 │   ├── package.json
-│   └── firebase.json
-
-├── backend/                  # Java service (Render deploy)
-│   ├── src/main/java/
-│   │   └── com/notam/
-│   │       ├── controller/   # REST/gRPC endpoints
-│   │       ├── service/      # business logic
-│   │       ├── client/       # FAA API client
-│   │       ├── cache/        # Firestore interface
-│   │       ├── model/
-│   │       └── util/
-│   └── src/main/resources/
-
-├── cli/                      # command-line client
-│   ├── src/
-│   │   ├── commands/
-│   │   ├── api/
-│   │   └── main.*
-│   └── README.md
-
-├── proto/                    # gRPC contracts
-│   └── notam.proto
-
-├── scripts/                  # dev + deployment scripts
-│   ├── build.sh
-│   ├── deploy.sh
-│   └── seed-db.sh
-
-├── config/                   # environment configs
-│   ├── dev.env
-│   ├── prod.env
-│   └── firebase.rules
-
-└── .github/
-    └── workflows/            # CI/CD pipelines
-        ├── backend.yml
-        └── frontend.yml
+│   ├── public
+│   │   └── vite.svg
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   └── react.svg
+│   │   ├── index.css
+│   │   └── main.jsx
+│   └── vite.config.js
+├── proto
+└── scripts
 ```
 
 ## Features
@@ -117,7 +128,7 @@ cd project-name
 **All dates/goals are subject to change based on feedback and development progress*
 
 ### Sprint 1
-End date: February 16
+End date: February 21
 
 - Establish clear understanding of NOTAM
 - Research NOTAM structure and FAA API
@@ -127,7 +138,7 @@ End date: February 16
 - Implement API connection and test data retrieval
 
 ### Sprint 2
-End date: March 9
+End date: March 13
 
 - Implement NOTAM parsing to separate raw text into structured fields
 - Develop unit tests and test parsing functionality
@@ -136,14 +147,14 @@ End date: March 9
 - End Goal: Have a Minimum-Viable-Product (MVP)
 
 ### Sprint 3
-End date: April 13
+End date: April 18
 
 - Improve filtering
   - Contingent on feedback 
 - Improve UI
 
 ### Sprint 4
-End date: May 4
+End date: May 9
 
 - Improve performance and code quality
 - Prepare final demo
