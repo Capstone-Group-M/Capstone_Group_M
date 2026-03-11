@@ -149,6 +149,46 @@ class NotamParserTest {
         assertNull(notam.getIcaoLocation());
     }
 
+    @Test
+    void notamStatusTag_beforeEffectiveStart_returnsInactive() throws Exception {
+        String json = """
+            {
+                "id": "NOTAM-002",
+                "effectiveStart": "2026-03-20T12:00:00Z"
+            }
+            """;
+
+        JsonNode node = mapper.readTree(json);
+        NOTAM notam = parser.JsonNotamToNotamObject(node);
+
+        assertEquals(
+            "INACTIVE",
+            notam.getStatusTag(ZonedDateTime.parse("2026-03-20T11:59:00Z"))
+        );
+    }
+
+    @Test
+    void notamStatusTag_onOrAfterEffectiveStart_returnsActive() throws Exception {
+        String json = """
+            {
+                "id": "NOTAM-003",
+                "effectiveStart": "2026-03-20T12:00:00Z"
+            }
+            """;
+
+        JsonNode node = mapper.readTree(json);
+        NOTAM notam = parser.JsonNotamToNotamObject(node);
+
+        assertEquals(
+            "ACTIVE",
+            notam.getStatusTag(ZonedDateTime.parse("2026-03-20T12:00:00Z"))
+        );
+        assertEquals(
+            "ACTIVE",
+            notam.getStatusTag(ZonedDateTime.parse("2026-03-20T12:01:00Z"))
+        );
+    }
+
     // ========== parsePage integration test ==========
 
     @Test
