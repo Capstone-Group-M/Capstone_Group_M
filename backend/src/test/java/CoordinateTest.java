@@ -130,7 +130,7 @@ class CoordinateTest {
     // Wrap-around
     @Test
     void testWrapAround() {
-        assertNull(Coordinate.parse("90 0.1 N 180 0.1 E"))
+        assertNull(Coordinate.parse("90 0.1 N 180 0.1 E"));
     }
 
     // Invalid miniutes

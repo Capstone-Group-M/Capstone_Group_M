@@ -46,9 +46,9 @@ public class Coordinate {
         try {
             // Latitude
             int latitudeDegree = Integer.parseInt(matcher.group(1));
-            double latitutdeMinute = 0.0;
+            double latitudeMinute = 0.0;
             if (matcher.group(2) != null && !matcher.group(2).isEmpty()) {
-                latitutdeMinute = Double.parseDouble(matcher.group(2));
+                latitudeMinute = Double.parseDouble(matcher.group(2));
             }
 
             char latitudeDirection = matcher.group(3).charAt(0);
@@ -75,7 +75,7 @@ public class Coordinate {
             if (longitudeDegree == 180 && longitudeMinute > 0) { return null; }
 
             // Convert to decimal degrees
-            double latitude = latitudeDegree + latitutdeMinute / 60.0;
+            double latitude = latitudeDegree + latitudeMinute / 60.0;
             if (latitudeDirection == 'S') latitude = -latitude; // S means negative
 
             double longitude = longitudeDegree + longitudeMinute / 60.0;
