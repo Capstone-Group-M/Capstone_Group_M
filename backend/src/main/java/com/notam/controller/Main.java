@@ -62,7 +62,6 @@ public class Main {
                     .GET()
                     //finalize request
                     .build();
-
             //send the request and store the response        
             HttpResponse<String> response =
                     client.send(request, HttpResponse.BodyHandlers.ofString());
