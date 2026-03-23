@@ -1,16 +1,10 @@
 package com.notam.controller;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
-import java.util.Scanner;
 import java.util.List;
-import com.notam.parser.NotamParser;
+import java.util.Scanner;
+import com.notam.client.FAAClient;
 import com.notam.model.NOTAM;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Main {
 
@@ -30,72 +24,27 @@ public class Main {
     }
  
     public static void main(String[] args) throws Exception {
-        System.out.println("----- Search Notams by ICAO Location-----\n");
-
-        //get user location input
+        System.out.println("----- Search Notams by ICAO Location-----");
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter 'EXIT' to quit program");
-        System.out.println("Enter ICAO Location (example: KOKC): ");
-        String input = scanner.nextLine().trim().toUpperCase();
+        String input = "";
 
         //get NOTAMs for different locations until "EXIT"
         while (!input.equals("EXIT")) {
-
-            //domain to FAA API server
-            String domain = "external-api.faa.gov";
-
-            //full url to send request. does not have to be icaoLocation=.
-            //it can be other parameters such as notamType,classification,notamNumber, etc... 
-            String url = "https://" + domain + "/notamapi/v1/notams?icaoLocation=" + input;
-            
-            //HTTP Client used to connect to server, send request, and recieve responses
-            HttpClient client = HttpClient.newHttpClient();
-
-            //create HTTP request
-            HttpRequest request = HttpRequest.newBuilder()
-                    //send request to this url
-                    .uri(URI.create(url))
-                    //checks credentials
-                    .header("client_id", CLIENT_ID)
-                    .header("client_secret", CLIENT_SECRET)
-                    //tells server "I want to retrieve data"
-                    .GET()
-                    //finalize request
-                    .build();
-            //send the request and store the response        
-            HttpResponse<String> response =
-                    client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            int code = response.statusCode();
-            
-            // check for any error codes from request
-            if (code > 200 || code < 300){
-                //from Jackson Library used to parse JSON object        
-                ObjectMapper mapper = new ObjectMapper();
-                NotamParser parser = new NotamParser(mapper);                
-                List<NOTAM> notams = parser.parsePage(response);
-                
-                int index = 0;
-                for (NOTAM notam : notams){
-                    index++;
-                    System.out.println("------NOTAM------ number: "+ index);
-                    System.out.println("---text---\n" + notam.getText());
-                    System.out.println("---issued---\n" + notam.getIssued());
-                }    
-            }
-            else{
-                System.err.println("There was an error connecting to client. Error code = " + String.valueOf(code));
-                System.out.println("If you would like to try again enter 'y', if not enter 'n' : ");
-                String try_again = scanner.nextLine().trim().toUpperCase();
-                if (try_again.equals("n")){
-                    break;
-                }
-            }
-
-            //get next input
+            //get input
             System.out.println("\n Enter 'EXIT' to quit program");
             System.out.println("Enter ICAO Location (example: KOKC): ");
             input = scanner.nextLine().trim().toUpperCase();
+
+            FAAClient faaClient = new FAAClient(CLIENT_ID, CLIENT_SECRET);
+            List<NOTAM> notams = faaClient.fetchAllNotams(input);
+            
+            int number = 0;
+            for (NOTAM notam : notams){
+                System.out.println("\n==== NOTAM number " + number + ", Notam ID = " + notam.getAccountId() + "====");
+                System.out.println("---text---\n" + notam.getText());
+                System.out.println("---issued---\n" + notam.getIssued());
+                number++;
+            }
         }
         scanner.close();
     }
