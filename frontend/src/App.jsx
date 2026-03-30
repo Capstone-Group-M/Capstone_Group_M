@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AirportForm from "./components/AirportForm";
 import "./App.css";
+import "./services/firebase";
 
 function App() {
   const [route, setRoute] = useState(null);
