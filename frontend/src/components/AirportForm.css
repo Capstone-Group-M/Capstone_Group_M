@@ -1,0 +1,42 @@
+.airport-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 360px;
+  margin: 2rem auto 0;
+  text-align: left;
+}
+
+.airport-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.airport-form-field label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.airport-form-field input {
+  padding: 0.6em 0.8em;
+  font-size: 1rem;
+  font-family: inherit;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #1a1a1a;
+  color: inherit;
+  letter-spacing: 0.1em;
+}
+
+.airport-form-field input:focus {
+  outline: 2px solid #646cff;
+  border-color: transparent;
+}
+
+@media (prefers-color-scheme: light) {
+  .airport-form-field input {
+    background-color: #ffffff;
+    border-color: #ccc;
+  }
+}
