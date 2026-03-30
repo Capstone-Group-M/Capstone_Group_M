@@ -24,9 +24,18 @@ Once compiled you can check specific .java files with:
 example:
     ~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main"
 
+To run unit tests:
+    ~ mvn test
+
+To run a specific test class:
+    ~ mvn test -Dtest="NOTAMTest"
+
 If you want run "~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main""
-you will need to create a local enviromnent variable below are instructions 
+you will need to create a local enviromnent variable below are instructions
 how to do so.
 
 In terminal
     ~ export FAA_CLIENT_SECRET=<secret_key_value>
+
+To run test simply do:
+    ~ mvn test

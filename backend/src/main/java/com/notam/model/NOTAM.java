@@ -1,6 +1,7 @@
 // Package groups all data classes
 package com.notam.model;
 
+import java.time.LocalDateTime;
 // For handling date
 import java.time.ZonedDateTime;
 import java.util.List; // List of translations
@@ -112,6 +113,25 @@ public class NOTAM {
     // Effective End
     public ZonedDateTime getEffectiveEnd() { return effectiveEnd; }
     public void setEffectiveEnd(ZonedDateTime effectiveEnd) { this.effectiveEnd = effectiveEnd; }
+
+    public boolean isActive() {
+        return isActiveAt(ZonedDateTime.now());
+    }
+
+    public boolean isActiveAt(ZonedDateTime comparisonTime) {
+        if (effectiveStart == null || comparisonTime == null) {
+            return true;
+        }
+        return !comparisonTime.isBefore(effectiveStart);
+    }
+
+    public String getStatusTag() {
+        return getStatusTag(ZonedDateTime.now());
+    }
+
+    public String getStatusTag(ZonedDateTime comparisonTime) {
+        return isActiveAt(comparisonTime) ? "ACTIVE" : "INACTIVE";
+    }
 
     // Last updated
     public ZonedDateTime getLastUpdated() { return lastUpdated; }
