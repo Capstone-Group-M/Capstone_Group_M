@@ -20,6 +20,12 @@ Install dependencies:
 
 npm install
 
+Copy the environment variable template and fill in your Firebase project values:
+
+cp .env.local.example .env.local
+
+Ask a team member with Firebase console access for the actual values, or find them in the Firebase project settings under "Your apps".
+
 ## Run the Development Server
 
 Start the React development server:
