@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 // For handling date
 import java.time.ZonedDateTime;
 import java.util.List; // List of translations
+import java.util.Objects;
 
 public class NOTAM {
 
@@ -169,6 +170,19 @@ public class NOTAM {
 
     public List<NotamTranslation> getTranslations() { return translations; }
     public void setTranslations(List<NotamTranslation> translations) { this.translations = translations; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NOTAM notam = (NOTAM) o;
+        return Objects.equals(number, notam.number);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(number);
+    }
 
     // Inner class for the translations (listed)
     public static class NotamTranslation {

@@ -3,5 +3,6 @@
     "java.project.sourcePaths": [
         "cli/src"
     ],
-    "java.project.referencedLibraries": []
+    "java.project.referencedLibraries": [],
+    "java.compile.nullAnalysis.mode": "automatic"
 }
