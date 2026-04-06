@@ -2,10 +2,11 @@
 /*
 The math for this could be wrong
 */
-package com.notam.service;
+
 
 import com.notam.model.Coordinate;
 import com.notam.model.NOTAM;
+import com.notam.service.NOTAMRanking;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
