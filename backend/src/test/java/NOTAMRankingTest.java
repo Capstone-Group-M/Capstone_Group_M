@@ -74,19 +74,19 @@ public class NOTAMRankingTest {
         NOTAMRanking ranking = new NOTAMRanking();
 
         // NOTAM directly on route
-        NOTAM n1 = new NOTAM("1", "001", "A");
-        n1.setCoordinates("0000N0050E");
+        NOTAM notam1 = new NOTAM("1", "001", "A");
+        notam1.setCoordinates("0000N0050E");
 
         // NOTAM slightly north
-        NOTAM n2 = new NOTAM("2", "002", "B");
-        n2.setCoordinates("0030N0050E");
+        NOTAM notam2 = new NOTAM("2", "002", "B");
+        notam2.setCoordinates("0030N0050E");
 
         // NOTAM farther north
         NOTAM n3 = new NOTAM("3", "003", "C");
         n3.setCoordinates("0100N0050E");
 
         // List of notams not in sorted order to see if they are actually sorted
-        List<NOTAM> notams = List.of(n3, n1, n2); 
+        List<NOTAM> notams = List.of(n3, notam1, notam2); 
 
         // Rank NOTAMs
         List<NOTAM> ranked = ranking.rankNOTAMs(departure, destination, corridorNM, notams);
@@ -109,13 +109,13 @@ public class NOTAMRankingTest {
         NOTAMRanking ranking = new NOTAMRanking();
 
         // Both NOTAMs far from route
-        NOTAM n1 = new NOTAM("1", "001", "Far1");
-        n1.setCoordinates("0100N0050E");
+        NOTAM notam1 = new NOTAM("1", "001", "Far1");
+        notam1.setCoordinates("0100N0050E");
 
-        NOTAM n2 = new NOTAM("2", "002", "Far2");
-        n2.setCoordinates("0200N0050E");
+        NOTAM notam2 = new NOTAM("2", "002", "Far2");
+        notam2.setCoordinates("0200N0050E");
 
-        List<NOTAM> ranked = ranking.rankNOTAMs(departure, destination, corridorNM, List.of(n1, n2));
+        List<NOTAM> ranked = ranking.rankNOTAMs(departure, destination, corridorNM, List.of(notam1, notam2));
 
         // No NOTAMs should pass the filter
         assertTrue(ranked.isEmpty());
@@ -168,4 +168,121 @@ public class NOTAMRankingTest {
 
         assertTrue(containsEdge, "NOTAM exactly on corridor edge should be included");
     }
+
+
+    // BOUNDING BOX METHOD TEST(S)
+    // Test bounding box filters out far NOTAMs
+    // This is just the basic filter to see if it works (or the correctnes of the method)
+    @Test
+    void testBoundingBoxBasicFilter() {
+
+        NOTAMRanking ranking = new NOTAMRanking();
+
+        // Route from (0,0) to (0,10)
+        Coordinate departure = new Coordinate(0,0);
+        Coordinate destination = new Coordinate(0,10);
+
+        double corridorNM = 60.0; // ~1 degree buffer
+
+        // Notams that should be inside box
+        NOTAM inside1 = new NOTAM("1", "001", "Inside1");
+        inside1.setCoordinates("0000N0050E"); // on route
+
+        NOTAM inside2 = new NOTAM("2", "002", "Inside2");
+        inside2.setCoordinates("0050N0050E"); // 0.5 deg north (inside)
+
+        // Notams that should be outside the box
+        NOTAM outside = new NOTAM("3", "003", "Outside");
+        outside.setCoordinates("0300N0050E"); // 3 deg north (outside)
+
+        // List of the notams
+        List<NOTAM> notams = List.of(inside1, inside2, outside);
+
+        // Result after running function
+        List<NOTAM> result = ranking.boundingBox(departure, destination, corridorNM, notams);
+
+        // Should only include the two inside NOTAMs
+        assertEquals(2, result.size());
+        assertTrue(result.contains(inside1));
+        assertTrue(result.contains(inside2));
+        assertFalse(result.contains(outside));
+    }
+
+    // Test bounding box includes NOTAMs on the boundary line
+    @Test
+    void testBoundingBoxEdgeInclusion() {
+
+        NOTAMRanking ranking = new NOTAMRanking();
+
+        // Departure and desintaiton 10 apart
+        Coordinate departure = new Coordinate(0,0);
+        Coordinate destination = new Coordinate(0,10);
+
+        // Corridor width
+        double corridorNM = 60.0; // ~1 degree
+
+        // Exactly on upper boundary (~1 degree north)
+        NOTAM edge = new NOTAM("1", "001", "Edge");
+        edge.setCoordinates("0100N0050E");
+
+        // Result
+        List<NOTAM> result = ranking.boundingBox(departure, destination, corridorNM, List.of(edge));
+
+        // Should be included because we use <= in the method
+        assertEquals(1, result.size());
+        assertEquals("1", result.get(0).getId());
+    }
+
+    // Test bounding box removes all NOTAMs if all are outside
+    // Should be empty
+    @Test
+    void testBoundingBoxAllOutside() {
+
+        NOTAMRanking ranking = new NOTAMRanking();
+
+        Coordinate departure = new Coordinate(0,0);
+        Coordinate destination = new Coordinate(0,10);
+
+        double corridorNM = 30.0; // small (~0.5 degree)
+
+        NOTAM notam1 = new NOTAM("1", "001", "Far1");
+        notam1.setCoordinates("0200N0050E");
+
+        NOTAM notam2 = new NOTAM("2", "002", "Far2");
+        notam2.setCoordinates("0300N0050E");
+
+        List<NOTAM> result = ranking.boundingBox(departure, destination, corridorNM, List.of(notam1, notam2));
+
+        assertTrue(result.isEmpty());
+    }
+
+    // Test bounding box preserves input order
+    // Mainly just in case we needed order preserved for future implementations
+    // This makes sure that we keep it like that
+    @Test
+    void testBoundingBoxOrderPreserved() {
+
+        NOTAMRanking ranking = new NOTAMRanking();
+
+        // New coordinates for route
+        Coordinate departure = new Coordinate(0,0);
+        Coordinate destination = new Coordinate(0,10);
+
+        // Corridor width
+        double corridorNM = 60.0;
+
+        // Notams
+        NOTAM notam1 = new NOTAM("1", "001", "A");
+        notam1.setCoordinates("0000N0050E");
+
+        NOTAM notam2 = new NOTAM("2", "002", "B");
+        notam2.setCoordinates("0050N0050E");
+
+        List<NOTAM> result = ranking.boundingBox(departure, destination, corridorNM, List.of(notam1, notam2));
+
+        // Order should stay the same
+        assertEquals("1", result.get(0).getId());
+        assertEquals("2", result.get(1).getId());
+    }
+
 }

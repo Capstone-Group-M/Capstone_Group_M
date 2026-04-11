@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 /*
+STEP 0: Perform base filter of bounding box
 STEP 1: Compute route distance (great circle path)
 STEP 2: Compute cross-track distance (and filter by corridor width)
 */
@@ -19,14 +20,20 @@ public class NOTAMRanking {
     // The suggested values for corridor width is 25 NM
     public List<NOTAM> rankNOTAMs(Coordinate departure, Coordinate destination, double corridorNM, List<NOTAM> notams) {
 
+        // Filtered NOTAMs via the bounding box to lower the amount of NOTAMs to go through
+        List<NOTAM> boxedNotams = boundingBox(departure, destination, corridorNM, notams);
+
         // HashMap to store computed distances of NOTAMs to flight route
         Map<NOTAM, Double> notamDistance = new HashMap<>();
 
-        // Loop through all NOTAMs returned from FAA API 
-        for (int index = 0; index < notams.size(); index++)
+        // List to store filtered NOTAMs
+        List<NOTAM> filteredNotams = new ArrayList<>();
+
+        // Loop through all NOTAMs returned from FAA API filtered by boundingBox
+        for (int index = 0; index < boxedNotams.size(); index++)
         {
             // Get NOTAM at index
-            NOTAM notam = notams.get(index);
+            NOTAM notam = boxedNotams.get(index);
 
             // Get coordinate values (this is under the assumption that coordinate
             // values are under coordinate format ex: (x, y) of Doubles)
@@ -40,21 +47,11 @@ public class NOTAMRanking {
             // Compute distance of NOTAM to route (cross-track)
             double distance = crossTrackDistance(departure, destination, notamCoordinate);
 
-            // Store the distance and NOTAM
-            notamDistance.put(notam, distance);
-        }
-
-        // List to hold filtered NOTAMs
-        List<NOTAM> filteredNotams = new ArrayList<>();
-
-        // Loop through NOTAMs and filter NOTAMs by corridor width
-        for (int index = 0; index < notams.size(); index++) {
-            // Get NOTAM at index
-            NOTAM notam = notams.get(index);
-
-            // Only include NOTAMs with a distance and within the corridor width
-            if (notamDistance.containsKey(notam) && notamDistance.get(notam) <= corridorNM) {
+            // Check and make sure it is within corridor width
+            if (distance <= corridorNM) {
+                // If within add into the list/map
                 filteredNotams.add(notam);
+                notamDistance.put(notam, distance);
             }
         }
 
@@ -63,6 +60,49 @@ public class NOTAMRanking {
 
         // Return the sorted list
         return filteredNotams;
+    }
+
+    // STEP 0: BOUNDING BOX
+    // This takes departure and destination and creates a box around the route
+    // plus the buffer (corrdidor width). This is a base filter to quickly parse
+    // through a multitude of NOTAMs
+    public List<NOTAM> boundingBox(Coordinate departure, Coordinate destination, double corridorNM, List<NOTAM> notams) {
+
+        // List to hold the filtered NOTAMs
+        List<NOTAM> filtered = new ArrayList<>();
+
+        // Convert nautical miles to approximate degrees
+        double bufferDegrees = corridorNM / 60.0;
+
+        // Create bounding box around route
+        double minimumLatitude = Math.min(departure.getLatitude(), destination.getLatitude()) - bufferDegrees;
+        double maximumLatitude = Math.max(departure.getLatitude(), destination.getLatitude()) + bufferDegrees;
+        double minimumLongitude = Math.min(departure.getLongitude(), destination.getLongitude()) - bufferDegrees;
+        double maximumLongitude = Math.max(departure.getLongitude(), destination.getLongitude()) + bufferDegrees;
+
+        // Filter NOTAMs directly
+        for (NOTAM notam : notams) {
+
+            // Parse the coordinate string
+            Coordinate coordinate = Coordinate.parse(notam.getCoordinates());
+
+            // Skip if coordinate parsing fails or is null
+            if (coordinate == null) continue;
+
+            // Get the longitude and latitude
+            double latitude = coordinate.getLatitude();
+            double longitude = coordinate.getLongitude();
+
+            // Bounding box check to see if NOTAM is within
+            if (latitude >= minimumLatitude && latitude <= maximumLatitude &&
+                longitude >= minimumLongitude && longitude <= maximumLongitude) {
+
+                filtered.add(notam);
+            }
+        }
+
+        // Return the filtered notams
+        return filtered;
     }
 
     // STEP 2: COMPUTE CROSS TRACK
@@ -130,6 +170,5 @@ public class NOTAMRanking {
 
             return Math.atan2(y, x);
         }
-
     
 }
