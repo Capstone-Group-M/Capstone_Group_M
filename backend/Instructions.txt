@@ -3,7 +3,7 @@ These instructions are to help you compile and run backend
 Prerequisites:
 Java 17+
 Maven 3.9+
-Internet connection (for FAA API)
+Internet connection (for FAA SWIM API)
 
 Maven needs to be installed.
     - Check if its already intalled. On mac try: 
@@ -19,18 +19,22 @@ To compile first go to Capstone_Group_M/backend/
 Then compile with 
     ~ mvn compile
 
-Once compiled you can check specific .java files with:
-    ~ mvn exec:java -Dexec.mainClass="your.location.yourjava"
-example:
-    ~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main"
+Before running the SWIM consumer, you need an application.conf file in the
+backend/ root directory. This file contains our FAA SWIM credentials and
+is gitignored for security.
 
-To run unit tests:
-    ~ mvn test
+Create backend/application.conf with the following format:
 
-To run a specific test class:
-    ~ mvn test -Dtest="NOTAMTest"
+    providerUrl:"tcps://ems1.swim.faa.gov:55443"
+    queue:"<your-swim-queue>"
+    connectionFactory:"<your-connection-factory>"
+    username:"<your-swim-username>"
+    password:"<your-swim-password>"
+    vpn:"AIM_FNS"
+    output:"notams_output.txt"
+    json:true
 
-If you want run "~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main""
+If you want use the old api using "~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main""
 you will need to create a local enviromnent variable below are instructions
 how to do so.
 
@@ -39,3 +43,16 @@ In terminal
 
 To run test simply do:
     ~ mvn test
+
+Once compiled you can check specific .java files with:
+    ~ mvn exec:java -Dexec.mainClass="your.location.yourjava"
+example:
+    ~ mvn exec:java -Dexec.mainClass="com.notam.controller.Main"
+or run the SWIM Consumer to populate Notams directly:
+    ~ mvn exec:java -Dexec.mainClass="com.notam.client.new_client.SWIMConsumer"
+
+To run unit tests:
+    ~ mvn test
+
+To run a specific test class:
+    ~ mvn test -Dtest="NOTAMTest"
