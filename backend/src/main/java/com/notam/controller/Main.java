@@ -3,44 +3,62 @@ package com.notam.controller;
 import java.util.List;
 import java.util.Scanner;
 import com.notam.client.FAAOldClient;
+import com.notam.client.new_client.SWIMConsumer;
 import com.notam.model.NOTAM;
-
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 public class Main {
 
-    //do not share CLIENT_SECRET in plain text
     private static final String CLIENT_ID = "5982191bfef7458aa9cb8e8c9674b645";
-    //this is a secret value, FAA_CLIENT_SECRET is put in terminal manually with ~export FAA_CLIENT_SECRET=abc123
     private static final String CLIENT_SECRET;
 
     static {
         CLIENT_SECRET = System.getenv("FAA_CLIENT_SECRET");
-
-        if (CLIENT_SECRET == null || CLIENT_SECRET.isBlank()) {
-            System.err.println("ERROR: Environment variable FAA_CLIENT_SECRET is not set.");
-            System.err.println("Please set it before running the program.");
-            System.exit(1);
-        }
     }
- 
+
     public static void main(String[] args) throws Exception {
-        System.out.println("----- Search Notams by ICAO Location-----");
         Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Select data source:");
+        System.out.println("1) Old FAA REST API");
+        System.out.println("2) New SWIM Feed");
+        System.out.print("Choice: ");
+        String choice = scanner.nextLine().trim();
+
+        if (choice.equals("1")) {
+            runOldApi(scanner);
+        } else if (choice.equals("2")) {
+            runSWIMFeed();
+        } else {
+            System.out.println("Invalid choice.");
+        }
+
+        scanner.close();
+    }
+
+    private static void runOldApi(Scanner scanner) throws Exception {
+        if (CLIENT_SECRET == null || CLIENT_SECRET.isBlank()) {
+            System.err.println("ERROR: FAA_CLIENT_SECRET is not set.");
+            return;
+        }
+
+        System.out.println("----- Search Notams by ICAO Location -----");
         String input = "";
 
-        //get NOTAMs for different locations until "EXIT"
         while (!input.equals("EXIT")) {
-            //get input
-            System.out.println("\n Enter 'EXIT' to quit program");
-            System.out.println("Enter ICAO Location (example: KOKC): ");
+            System.out.println("\nEnter 'EXIT' to quit");
+            System.out.print("Enter ICAO Location (example: KOKC): ");
             input = scanner.nextLine().trim().toUpperCase();
+
+            if (input.equals("EXIT")) break;
 
             FAAOldClient faaClient = new FAAOldClient(CLIENT_ID, CLIENT_SECRET);
             List<NOTAM> notams = faaClient.fetchAllNotams(input);
-            
+
             int number = 0;
-            for (NOTAM notam : notams){
-                System.out.println("\n==== NOTAM number " + number + ", Notam ID = " + notam.getAccountId() + "====");
+            for (NOTAM notam : notams) {
+                System.out.println("\n==== NOTAM " + number + ", ID = " + notam.getAccountId() + " ====");
                 System.out.println("---text---\n" + notam.getText());
                 System.out.println("---issued---\n" + notam.getIssued());
                 System.out.println("---id---\n" + notam.getId());
@@ -48,6 +66,28 @@ public class Main {
                 number++;
             }
         }
-        scanner.close();
+    }
+
+    private static void runSWIMFeed() throws Exception {
+        System.out.println("----- Starting SWIM NOTAM Feed -----");
+        System.out.println("Receiving US NOTAMs in real-time...");
+        System.out.println("Press Ctrl+C to stop.\n");
+
+        Config config = ConfigFactory.load();
+
+        SWIMConsumer consumer = new SWIMConsumer(
+            config.getString("providerUrl"),
+            config.getString("queue"),
+            config.getString("connectionFactory"),
+            config.getString("username"),
+            config.getString("password"),
+            config.getString("vpn"),
+            config.getString("output"),
+            config.getBoolean("json")
+        );
+        consumer.connect();
+
+        // Keep running until Ctrl+C
+        Thread.currentThread().join();
     }
 }
