@@ -13,7 +13,7 @@ import com.notam.model.NOTAM;
 @RequestMapping("/api/notams")
 public class NotamController {
 
-    private static final String CLIENT_ID = "12345";
+    private static final String CLIENT_ID = "5982191bfef7458aa9cb8e8c9674b645";
     private static final String CLIENT_SECRET;
 
     static {
