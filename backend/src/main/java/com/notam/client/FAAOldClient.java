@@ -32,11 +32,12 @@ public class FAAOldClient {
         this.clientSecret = clientSecret;
     }
     //used for testing
-    private FAAOldClient(String clientId, String clientSecret, HttpClient client) {
+    FAAOldClient(String clientId, String clientSecret, HttpClient client) {
         this.client = client;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-}   
+    }
+    
     public static boolean isValidIcao(String code){
         return code != null && code.matches("[A-Z]{4}");
     }
