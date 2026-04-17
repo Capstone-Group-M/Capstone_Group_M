@@ -1,16 +1,24 @@
 package com.notam.controller;
 
+import com.notam.NotamService;
+import com.notam.model.NotamSearchResponse;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import com.notam.model.NOTAM;
 
 @RestController
-@RequestMapping("/notams")
+@RequestMapping("/api/notams")
+@CrossOrigin(origins = "http://localhost:5173")
 public class NotamController {
 
+    private final NotamService notamService;
+
+    public NotamController(NotamService notamService) {
+        this.notamService = notamService;
+    }
+
     @GetMapping
-    public List<NOTAM> getNotams(@RequestParam String icaoLocation) {
-        // we'll hook up real FAA logic here next
-        return List.of(new NOTAM("1", "A1234/26", icaoLocation));
+    public NotamSearchResponse getNotams(
+            @RequestParam String departure,
+            @RequestParam String destination) {
+        return notamService.getNotamsForRoute(departure, destination);
     }
 }

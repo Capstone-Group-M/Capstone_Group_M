@@ -32,7 +32,7 @@ public class FAAOldClient {
         this.clientSecret = clientSecret;
     }
     //used for testing
-    private FAAOldClient(String clientId, String clientSecret, HttpClient client) {
+    public FAAOldClient(String clientId, String clientSecret, HttpClient client) {
         this.client = client;
         this.clientId = clientId;
         this.clientSecret = clientSecret;

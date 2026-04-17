@@ -25,6 +25,7 @@ function AirportForm({ onSubmit }) {
           value={departure}
           onChange={(e) => setDeparture(e.target.value.toUpperCase())}
           maxLength={4}
+          disabled={isSubmitting}
         />
       </div>
       <div className="airport-form-field">
@@ -36,9 +37,12 @@ function AirportForm({ onSubmit }) {
           value={destination}
           onChange={(e) => setDestination(e.target.value.toUpperCase())}
           maxLength={4}
+          disabled={isSubmitting}
         />
       </div>
-      <button type="submit">Search NOTAMs</button>
+      <button type="submit" disabled={loading}>
+          {loading ? "Loading..." : "Search NOTAMs"}
+      </button>
     </form>
   );
 }

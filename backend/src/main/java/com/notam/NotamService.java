@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.notam.model.NOTAM;
 import com.notam.model.NOTAMUtils;
+import com.notam.model.NotamDto;
+import com.notam.model.NotamSearchResponse;
 
 @Service
 public class NotamService {
@@ -54,5 +56,31 @@ public class NotamService {
         }
 
         return NOTAMUtils.removeDuplicates(notamList);
+    }
+
+    public NotamSearchResponse getNotamsForRoute(String departure, String destination) {
+        try {
+            List<NOTAM> combined = new ArrayList<>();
+            combined.addAll(getNotams(departure));
+            combined.addAll(getNotams(destination));
+
+            List<NOTAM> deduped = NOTAMUtils.removeDuplicates(combined);
+            List<NotamDto> notamDtos = new ArrayList<>();
+
+            for (NOTAM notam : deduped) {
+                notamDtos.add(new NotamDto(
+                        notam.getId(),
+                        notam.getIcaoLocation(),
+                        notam.getEffectiveStart() != null ? notam.getEffectiveStart().toString() : null,
+                        notam.getEffectiveEnd() != null ? notam.getEffectiveEnd().toString() : null,
+                        notam.getClassification(),
+                        notam.getText()
+                ));
+            }
+
+            return new NotamSearchResponse(departure, destination, notamDtos);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch NOTAMs for route", e);
+        }
     }
 }
