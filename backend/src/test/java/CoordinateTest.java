@@ -1,10 +1,7 @@
 // Unit test for Coordinate.java
-
+package com.notam.model;
 
 import org.junit.jupiter.api.Test;
-
-import com.notam.model.Coordinate;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class CoordinateTest {
