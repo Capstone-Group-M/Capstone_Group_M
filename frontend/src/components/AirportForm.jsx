@@ -1,47 +1,32 @@
 import { useState } from "react";
-import "./AirportForm.css";
 
-function AirportForm({ onSubmit }) {
+function AirportForm({ onSubmit, isSubmitting }) {
   const [departure, setDeparture] = useState("");
   const [destination, setDestination] = useState("");
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!departure.trim() || !destination.trim()) return;
-    onSubmit({
-      departure: departure.trim().toUpperCase(),
-      destination: destination.trim().toUpperCase(),
-    });
+  function handleSubmit(event) {
+    event.preventDefault();
+    onSubmit({ departure, destination });
   }
 
   return (
-    <form className="airport-form" onSubmit={handleSubmit}>
-      <div className="airport-form-field">
-        <label htmlFor="departure">Departure Airport (ICAO)</label>
-        <input
-          id="departure"
-          type="text"
-          placeholder="e.g. KJFK"
-          value={departure}
-          onChange={(e) => setDeparture(e.target.value.toUpperCase())}
-          maxLength={4}
-          disabled={isSubmitting}
-        />
-      </div>
-      <div className="airport-form-field">
-        <label htmlFor="destination">Destination Airport (ICAO)</label>
-        <input
-          id="destination"
-          type="text"
-          placeholder="e.g. KLAX"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value.toUpperCase())}
-          maxLength={4}
-          disabled={isSubmitting}
-        />
-      </div>
-      <button type="submit" disabled={loading}>
-          {loading ? "Loading..." : "Search NOTAMs"}
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Departure Airport"
+        value={departure}
+        onChange={(e) => setDeparture(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Destination Airport"
+        value={destination}
+        onChange={(e) => setDestination(e.target.value)}
+        required
+      />
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Loading..." : "Search"}
       </button>
     </form>
   );
