@@ -3,6 +3,9 @@ package com.notam.parser;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.JSONObject;
+
 import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -149,6 +152,96 @@ public class NotamParser {
         notam.setSelectionCode(selectionCode);
         notam.setText(text);
         return notam;
+    }
+    public NOTAM parseSWIMNotam(JSONObject json) {
+        try {
+            JSONObject msg = json.getJSONObject("AIXMBasicMessage");
+            Object member = msg.get("hasMember");
+
+            // Find the event:Event object
+            JSONObject event;
+            if (member instanceof JSONObject) {
+                event = ((JSONObject) member).getJSONObject("event:Event");
+            } else if (member instanceof org.json.JSONArray) {
+                org.json.JSONArray arr = (org.json.JSONArray) member;
+                event = null;
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    if (obj.has("event:Event")) {
+                        event = obj.getJSONObject("event:Event");
+                        break;
+                    }
+                }
+                if (event == null) return null;
+            } else {
+                return null;
+            }
+
+            JSONObject timeSlice = event
+                .getJSONObject("event:timeSlice")
+                .getJSONObject("event:EventTimeSlice");
+
+            JSONObject extension = timeSlice
+                .getJSONObject("event:extension")
+                .getJSONObject("fnse:EventExtension");
+
+            JSONObject notamData = timeSlice
+                .getJSONObject("event:textNOTAM")
+                .getJSONObject("event:NOTAM");
+
+            JSONObject timePeriod = timeSlice
+                .getJSONObject("gml:validTime")
+                .getJSONObject("gml:TimePeriod");
+
+            // Map to your existing NOTAM object
+            NOTAM notam = new NOTAM();
+
+            notam.setId(event.getJSONObject("gml:identifier")
+                .optString("content", null));
+            notam.setNumber(String.valueOf(notamData.opt("event:number")));
+            notam.setSeries(notamData.optString("event:series", null));
+            notam.setType(notamData.optString("event:type", null));
+            notam.setAccountId(extension.optString("fnse:accountId", null));
+            notam.setIcaoLocation(extension.optString("fnse:icaoLocation", null));
+            notam.setIssued(parseDate(notamData.optString("event:issued", null)));
+            notam.setEffectiveStart(parseDate(timePeriod.optString("gml:beginPosition", null)));
+            notam.setEffectiveEnd(parseSWIMEndDate(timePeriod.opt("gml:endPosition")));
+            notam.setLastUpdated(parseDate(extension.optString("fnse:lastUpdated", null)));
+            notam.setLocation(notamData.optString("event:location", null));
+            notam.setMinimumFL(notamData.optString("event:minimumFL", null));
+            notam.setMaximumFL(String.valueOf(notamData.opt("event:maximumFL")));
+            notam.setCoordinates(notamData.optString("event:coordinates", null));
+            notam.setClassification(extension.optString("fnse:classification", null));
+            notam.setTraffic(notamData.optString("event:traffic", null));
+            notam.setPurpose(notamData.optString("event:purpose", null));
+            notam.setScope(notamData.optString("event:scope", null));
+            notam.setSelectionCode(notamData.optString("event:selectionCode", null));
+            notam.setText(notamData.optString("event:text", null));
+
+            return notam;
+        } catch (Exception e) {
+            System.err.println("Failed to parse SWIM NOTAM: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Handle SWIM end dates which can be a string or an object with "content" field
+    private ZonedDateTime parseSWIMEndDate(Object endPosition) {
+        if (endPosition == null) return null;
+
+        String dateStr;
+        if (endPosition instanceof JSONObject) {
+            dateStr = ((JSONObject) endPosition).optString("content", null);
+        } else {
+            dateStr = endPosition.toString();
+        }
+
+        // Strip EST/EDT suffix that SWIM sometimes appends
+        if (dateStr != null) {
+            dateStr = dateStr.replaceAll("EST$|EDT$", "").trim();
+        }
+
+        return parseDate(dateStr);
     }
     
 }

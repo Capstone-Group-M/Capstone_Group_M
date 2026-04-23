@@ -39,8 +39,8 @@ class FAAClientTest {
         if (responses.length == 0) {
             throw new IllegalArgumentException("Must have 1 or more responses to mock/stub");
         }
-        OngoingStubbing<HttpResponse<String>> chain = doReturn(responses[0])
-            .when(mockClient).send(any(), any());
+        OngoingStubbing<HttpResponse<String>> chain = 
+            when(mockClient.<String>send(any(), any())).thenReturn(responses[0]);
         for (int i = 1; i < responses.length; i++) {
             chain = chain.thenReturn(responses[i]);
         }
