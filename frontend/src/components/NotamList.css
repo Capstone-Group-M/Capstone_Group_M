@@ -1,0 +1,75 @@
+.notam-list {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.notam-list h2 {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.notam-list-items {
+  display: grid;
+  gap: 1rem;
+}
+
+.notam-card {
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #1f1f1f;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.notam-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.notam-airport {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.notam-number {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.notam-message {
+  margin: 0 0 0.9rem;
+  line-height: 1.5;
+}
+
+.notam-meta {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  opacity: 0.9;
+}
+
+.notam-list-state {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+.notam-list-error {
+  color: #ff6b6b;
+}
+
+@media (prefers-color-scheme: light) {
+  .notam-card {
+    background: #ffffff;
+    border-color: #d9d9d9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .notam-list-error {
+    color: #c62828;
+  }
+}

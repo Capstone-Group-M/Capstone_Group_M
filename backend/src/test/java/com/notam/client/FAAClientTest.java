@@ -41,7 +41,7 @@ class FAAClientTest {
 
     private void setupResponseChain(HttpResponse<String>... responses) throws Exception {
         if (responses.length == 0) {
-            throw new IllegalArgumentException("Must provide at least one response");
+            throw new IllegalArgumentException("Must have 1 or more responses to mock/stub");
         }
 
         final int[] index = {0};
