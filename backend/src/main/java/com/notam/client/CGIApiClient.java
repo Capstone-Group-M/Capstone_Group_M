@@ -14,6 +14,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.notam.model.NOTAM;
 import com.notam.parser.NotamParser;
+import com.notam.model.Coordinate;
 
 public class CGIApiClient {
     private static final String AUTH_URL = "https://api-staging.cgifederal-aim.com/v1/auth/token";
@@ -39,10 +40,6 @@ public class CGIApiClient {
         this.clientSecret = clientSecret;
     }
 
-    public static boolean isValidIcao(String code) {
-        code = code.trim().toUpperCase();
-        return code != null && code.matches("[A-Z]{4}");
-    }
 
     private void authenticate() throws Exception {
         String auth = Base64.getEncoder().encodeToString(
@@ -66,7 +63,7 @@ public class CGIApiClient {
     }
 
     public List<NOTAM> fetchAllNotams(String icaoLocation) throws Exception {
-        if (icaoLocation == null || icaoLocation.isBlank() || !isValidIcao(icaoLocation)) {
+        if (icaoLocation == null || icaoLocation.isBlank()) {
             throw new IllegalArgumentException("ICAO location cannot be null or empty or more or less than 4 characters");
         }
 
@@ -105,12 +102,6 @@ public class CGIApiClient {
                 }
             }
 
-            if (response.statusCode() == 429) {
-                System.out.println("Rate limit due to large number of NOTAMs. Sleeping for 2 seconds...");
-                Thread.sleep(2000);
-                continue;
-            }
-
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new RuntimeException("CGI API error code: " + response.statusCode() + ", Error: " + response.body());
             }
@@ -121,6 +112,43 @@ public class CGIApiClient {
             allNotams.addAll(page);
             pageNum++;
         }
+        return allNotams;
+    }
+    public List<NOTAM> fetchNotamsByCoordinates(Coordinate coordinate, int radius) throws Exception {
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Coordinate cannot be null");
+        }
+        if (radius < 0 || radius > 100) {
+            throw new IllegalArgumentException("Radius must be between 0 and 100 nautical miles");
+        }
+
+        if (token == null) {
+            authenticate();
+        }
+
+        List<NOTAM> allNotams = new ArrayList<>();
+
+        String url = NOTAM_URL + "/notams?latitude=" + coordinate.getLatitude()
+                            + "&longitude=" + coordinate.getLongitude()
+                            + "&radius=" + radius;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + token)
+                .header("nmsResponseFormat", "GEOJSON")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = null;
+
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new RuntimeException("CGI API error code: " + response.statusCode() + ", Error: " + response.body());
+        }
+
+        List<NOTAM> page = parser.parseCGIPage(response);
+        allNotams.addAll(page);
 
         return allNotams;
     }

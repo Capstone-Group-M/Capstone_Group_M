@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.notam.model.Coordinate;
 import com.notam.model.NOTAM;
 
 public class CGIApiClientTest {
@@ -26,6 +27,9 @@ public class CGIApiClientTest {
 
     @Mock
     private HttpResponse<String> mockNotamResponse;
+
+    @Mock
+    private HttpResponse<String> mockResponse;
 
     private CGIApiClient cgiClient;
 
@@ -66,52 +70,11 @@ public class CGIApiClientTest {
         MockitoAnnotations.openMocks(this);
         cgiClient = new CGIApiClient("test-id", "test-secret", mockClient);
 
-        // Auth response
         when(mockAuthResponse.statusCode()).thenReturn(200);
         when(mockAuthResponse.body()).thenReturn(AUTH_RESPONSE);
 
-        // Default notam response
         when(mockNotamResponse.statusCode()).thenReturn(200);
         when(mockNotamResponse.body()).thenReturn(NOTAM_RESPONSE);
-
-        // First call = auth, second call = notams, third call = empty (stop pagination)
-        when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-                .thenReturn(mockAuthResponse)
-                .thenReturn(mockNotamResponse)
-                .thenReturn(mockNotamResponse)  // can add more pages here
-                .thenAnswer(inv -> {
-                    when(mockNotamResponse.body()).thenReturn(EMPTY_RESPONSE);
-                    return mockNotamResponse;
-                });
-    }
-
-    // --- isValidIcao ---
-
-    @Test
-    void testValidIcao() {
-        assertTrue(CGIApiClient.isValidIcao("KOKC"));
-        assertTrue(CGIApiClient.isValidIcao("KJFK"));
-    }
-
-    @Test
-    void testInvalidIcao_tooShort() {
-        assertFalse(CGIApiClient.isValidIcao("KOK"));
-    }
-
-    @Test
-    void testInvalidIcao_tooLong() {
-        assertFalse(CGIApiClient.isValidIcao("KOKCC"));
-    }
-
-    @Test
-    void testInvalidIcao_lowercase() {
-        // isValidIcao uppercases before checking so lowercase should pass
-        assertTrue(CGIApiClient.isValidIcao("kokc"));
-    }
-
-    @Test
-    void testInvalidIcao_null() {
-        assertThrows(NullPointerException.class, () -> CGIApiClient.isValidIcao(null));
     }
 
     // --- fetchAllNotams input validation ---
@@ -126,20 +89,15 @@ public class CGIApiClientTest {
         assertThrows(IllegalArgumentException.class, () -> cgiClient.fetchAllNotams("   "));
     }
 
-    @Test
-    void testFetchAllNotams_invalidIcao_throwsException() {
-        assertThrows(IllegalArgumentException.class, () -> cgiClient.fetchAllNotams("KOK"));
-    }
-
     // --- fetchAllNotams success ---
 
     @Test
     @SuppressWarnings("unchecked")
     void testFetchAllNotams_returnsNotams() throws Exception {
         when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-                .thenReturn(mockAuthResponse)   // authenticate
-                .thenReturn(mockNotamResponse)  // page 1
-                .thenAnswer(inv -> {            // page 2 empty, stops pagination
+                .thenReturn(mockAuthResponse)
+                .thenReturn(mockNotamResponse)
+                .thenAnswer(inv -> {
                     HttpResponse<String> emptyResponse = mock(HttpResponse.class);
                     when(emptyResponse.statusCode()).thenReturn(200);
                     when(emptyResponse.body()).thenReturn(EMPTY_RESPONSE);
@@ -183,26 +141,6 @@ public class CGIApiClientTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void testRateLimit_retries() throws Exception {
-        HttpResponse<String> rateLimitResponse = mock(HttpResponse.class);
-        when(rateLimitResponse.statusCode()).thenReturn(429);
-        when(rateLimitResponse.body()).thenReturn("Too Many Requests");
-
-        HttpResponse<String> emptyResponse = mock(HttpResponse.class);
-        when(emptyResponse.statusCode()).thenReturn(200);
-        when(emptyResponse.body()).thenReturn(EMPTY_RESPONSE);
-
-        when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-                .thenReturn(mockAuthResponse)   // authenticate
-                .thenReturn(rateLimitResponse)  // page 1 rate limited
-                .thenReturn(emptyResponse);     // page 1 retry succeeds with empty
-
-        List<NOTAM> notams = cgiClient.fetchAllNotams("KOKC");
-        assertTrue(notams.isEmpty());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
     void testNetworkFailure_throwsAfterRetries() throws Exception {
         when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
                 .thenReturn(mockAuthResponse)
@@ -211,5 +149,79 @@ public class CGIApiClientTest {
                 .thenThrow(new java.io.IOException("Network error"));
 
         assertThrows(RuntimeException.class, () -> cgiClient.fetchAllNotams("KOKC"));
+    }
+
+    // --- fetchNotamsByCoordinates input validation ---
+
+    @Test
+    void throwsOnNullCoordinate() {
+        assertThrows(IllegalArgumentException.class,
+                () -> cgiClient.fetchNotamsByCoordinates(null, 15));
+    }
+
+    @Test
+    void throwsOnNegativeRadius() {
+        assertThrows(IllegalArgumentException.class,
+                () -> cgiClient.fetchNotamsByCoordinates(new Coordinate(35.39, -97.59), -1));
+    }
+
+    @Test
+    void throwsOnRadiusOver100() {
+        assertThrows(IllegalArgumentException.class,
+                () -> cgiClient.fetchNotamsByCoordinates(new Coordinate(35.39, -97.59), 101));
+    }
+
+    // --- fetchNotamsByCoordinates success ---
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void throwsOnHttpError() throws Exception {
+        when(mockResponse.statusCode()).thenReturn(400);
+        when(mockResponse.body()).thenReturn("Bad Request");
+        when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(mockAuthResponse)
+                .thenReturn(mockResponse);
+
+        assertThrows(RuntimeException.class,
+                () -> cgiClient.fetchNotamsByCoordinates(new Coordinate(35.39, -97.59), 15));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void returnsEmptyListOnEmptyResponse() throws Exception {
+        when(mockResponse.statusCode()).thenReturn(200);
+        when(mockResponse.body()).thenReturn(EMPTY_RESPONSE);
+        when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(mockAuthResponse)
+                .thenReturn(mockResponse);
+
+        List<NOTAM> result = cgiClient.fetchNotamsByCoordinates(new Coordinate(35.39, -97.59), 15);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void acceptsBoundaryRadiusZero() throws Exception {
+        when(mockResponse.statusCode()).thenReturn(200);
+        when(mockResponse.body()).thenReturn(EMPTY_RESPONSE);
+        when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(mockAuthResponse)
+                .thenReturn(mockResponse);
+
+        assertDoesNotThrow(() -> cgiClient.fetchNotamsByCoordinates(new Coordinate(35.39, -97.59), 0));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void acceptsBoundaryRadius100() throws Exception {
+        when(mockResponse.statusCode()).thenReturn(200);
+        when(mockResponse.body()).thenReturn(EMPTY_RESPONSE);
+        when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(mockAuthResponse)
+                .thenReturn(mockResponse);
+
+        assertDoesNotThrow(() -> cgiClient.fetchNotamsByCoordinates(new Coordinate(35.39, -97.59), 100));
     }
 }
