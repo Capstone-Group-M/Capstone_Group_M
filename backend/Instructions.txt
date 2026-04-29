@@ -39,7 +39,7 @@ you will need to create a local enviromnent variable below are instructions
 how to do so.
 
 In terminal
-    ~ export FAA_CLIENT_SECRET=<secret_key_value>
+    ~ export CGI_CLIENT_SECRET=<secret_key_value>
 
 To run test simply do:
     ~ mvn test

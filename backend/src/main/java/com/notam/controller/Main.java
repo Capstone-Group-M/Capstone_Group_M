@@ -2,7 +2,7 @@ package com.notam.controller;
 
 import java.util.List;
 import java.util.Scanner;
-import com.notam.client.FAAOldClient;
+import com.notam.client.CGIApiClient;
 import com.notam.client.new_client.SWIMConsumer;
 import com.notam.model.NOTAM;
 import com.typesafe.config.Config;
@@ -10,24 +10,24 @@ import com.typesafe.config.ConfigFactory;
 
 public class Main {
 
-    private static final String CLIENT_ID = "5982191bfef7458aa9cb8e8c9674b645";
+    private static final String CLIENT_ID = "t9hKmqUptGmfBAa7lzpVfDISM4KYEoNR7wCHxTAK8RkigeE9";
     private static final String CLIENT_SECRET;
 
     static {
-        CLIENT_SECRET = System.getenv("FAA_CLIENT_SECRET");
+        CLIENT_SECRET = System.getenv("CGI_CLIENT_SECRET");
     }
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Select data source:");
-        System.out.println("1) Old FAA REST API");
+        System.out.println("1) New CGI API");
         System.out.println("2) New SWIM Feed");
         System.out.print("Choice: ");
         String choice = scanner.nextLine().trim();
 
         if (choice.equals("1")) {
-            runOldApi(scanner);
+            cgiApi(scanner);
         } else if (choice.equals("2")) {
             runSWIMFeed();
         } else {
@@ -37,24 +37,22 @@ public class Main {
         scanner.close();
     }
 
-    private static void runOldApi(Scanner scanner) throws Exception {
+    private static void cgiApi(Scanner scanner) throws Exception {
         if (CLIENT_SECRET == null || CLIENT_SECRET.isBlank()) {
-            System.err.println("ERROR: FAA_CLIENT_SECRET is not set.");
+            System.err.println("ERROR: CGI_CLIENT_SECRET is not set.");
             return;
         }
 
         System.out.println("----- Search Notams by ICAO Location -----");
         String input = "";
-
+        CGIApiClient cgiClient = new CGIApiClient(CLIENT_ID, CLIENT_SECRET);
         while (!input.equals("EXIT")) {
             System.out.println("\nEnter 'EXIT' to quit");
             System.out.print("Enter ICAO Location (example: KOKC): ");
             input = scanner.nextLine().trim().toUpperCase();
 
             if (input.equals("EXIT")) break;
-
-            FAAOldClient faaClient = new FAAOldClient(CLIENT_ID, CLIENT_SECRET);
-            List<NOTAM> notams = faaClient.fetchAllNotams(input);
+            List<NOTAM> notams = cgiClient.fetchAllNotams(input);
 
             int number = 0;
             for (NOTAM notam : notams) {

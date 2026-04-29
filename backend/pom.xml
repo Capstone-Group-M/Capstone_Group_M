@@ -39,6 +39,13 @@
             <version>10.24.0</version>
         </dependency>
 
+        <!-- Springboot -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>6.1.6</version>
+        </dependency>
+
         <!-- JMS API (javax, for V1 consumer) -->
         <dependency>
             <groupId>javax.jms</groupId>
