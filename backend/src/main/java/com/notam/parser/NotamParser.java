@@ -153,6 +153,34 @@ public class NotamParser {
         notam.setText(text);
         return notam;
     }
+    public List<NOTAM> parseCGIPage(HttpResponse<String> response) {
+        int code = response.statusCode();
+        if (code < 200 || code >= 300) {
+            throw new IllegalStateException("CGI NOTAM API returned HTTP " + code + ": " + response.body());
+        }
+
+        final JsonNode root;
+        try {
+            root = mapper.readTree(response.body());
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to parse CGI NOTAM JSON", e);
+        }
+
+        JsonNode geojson = root.path("data").path("geojson");
+        if (!geojson.isArray() || geojson.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<NOTAM> allNotams = new ArrayList<>(geojson.size());
+        for (JsonNode item : geojson) {
+            JsonNode JSONnotam = item.path("properties")
+                                    .path("coreNOTAMData")
+                                    .path("notam");
+            allNotams.add(JsonNotamToNotamObject(JSONnotam));
+        }
+        return allNotams;
+    }
+    
     public NOTAM parseSWIMNotam(JSONObject json) {
         try {
             JSONObject msg = json.getJSONObject("AIXMBasicMessage");
