@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Scanner;
 import com.notam.client.CGIApiClient;
 import com.notam.client.new_client.SWIMConsumer;
+import com.notam.model.Coordinate;
 import com.notam.model.NOTAM;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.notam.utils.AirportDataUtil;
 
 public class Main {
 
@@ -42,6 +44,11 @@ public class Main {
             System.err.println("ERROR: CGI_CLIENT_SECRET is not set.");
             return;
         }
+        System.out.print("Enter the first airport id from csv: ");
+        Coordinate coordinate_1 = promptForAirportId(scanner);
+
+        System.out.print("Enter the second airport id from csv: ");
+        Coordinate coordinate_2 = promptForAirportId(scanner);
 
         System.out.println("----- Search Notams by ICAO Location -----");
         String input = "";
@@ -87,5 +94,17 @@ public class Main {
 
         // Keep running until Ctrl+C
         Thread.currentThread().join();
+    }
+    private static Coordinate promptForAirportId(Scanner scanner){
+        Coordinate coordinates = null;
+        String airport = scanner.nextLine();
+        while(coordinates == null){
+            coordinates = AirportDataUtil.getCoordinatesFromIdent(airport);
+            if(coordinates == null){
+                System.out.print("The coordinates for that airport ID were not found, try again : ");
+                airport = scanner.nextLine(); 
+            } 
+        }
+        return coordinates;
     }
 }
