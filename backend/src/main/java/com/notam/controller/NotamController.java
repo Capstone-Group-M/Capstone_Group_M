@@ -2,37 +2,33 @@ package com.notam.controller;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
-import com.notam.client.FAAOldClient;
+import com.notam.NotamService;
 import com.notam.model.NOTAM;
 
 /**
  * REST controller that exposes an HTTP endpoint for fetching NOTAMs.
- * Calls the FAA API via FAAOldClient and returns results as JSON.
+ * Delegates to NotamService which calls the FAA API and deduplicates results.
  */
 @RestController
-@RequestMapping("/api/notams")
+@RequestMapping("/notams")
 public class NotamController {
 
-    private static final String CLIENT_ID = "5982191bfef7458aa9cb8e8c9674b645";
-    private static final String CLIENT_SECRET;
+    private final NotamService notamService;
 
-    static {
-        CLIENT_SECRET = System.getenv("FAA_CLIENT_SECRET");
-        if (CLIENT_SECRET == null || CLIENT_SECRET.isBlank()) {
-            throw new IllegalStateException("FAA_CLIENT_SECRET environment variable is not set.");
-        }
+    // NotamService is injected by Spring via constructor injection
+    public NotamController(NotamService notamService) {
+        this.notamService = notamService;
     }
 
     /**
      * GET /api/notams?icaoLocation=KOKC
-     * Returns a list of NOTAMs for the given ICAO location code.
+     * Returns a deduplicated list of NOTAMs for the given ICAO location code.
      *
      * @param icaoLocation the ICAO airport code to query (e.g. "KOKC")
      * @return list of NOTAM objects as JSON
      */
     @GetMapping
     public List<NOTAM> getNotams(@RequestParam String icaoLocation) throws Exception {
-        FAAOldClient faaClient = new FAAOldClient(CLIENT_ID, CLIENT_SECRET);
-        return faaClient.fetchAllNotams(icaoLocation);
+        return notamService.getNotams(icaoLocation);
     }
 }

@@ -2,12 +2,17 @@ package com.notam.client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -36,34 +41,42 @@ class FAAClientTest {
         return response;
     }
 
-    @SafeVarargs
     private void setupResponseChain(HttpResponse<String>... responses) throws Exception {
         if (responses.length == 0) {
             throw new IllegalArgumentException("Must have 1 or more responses to mock/stub");
         }
-        OngoingStubbing<HttpResponse<String>> chain = 
-            when(mockClient.<String>send(any(), any())).thenReturn(responses[0]);
-        for (int i = 1; i < responses.length; i++) {
-            chain = chain.thenReturn(responses[i]);
-        }
+
+        final int[] index = {0};
+
+        when(mockClient.<String>send(any(HttpRequest.class), any(BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    if (index[0] < responses.length) {
+                        return responses[index[0]++];
+                    }
+                    return responses[responses.length - 1];
+                });
     }
 
     private String singleNotamJson() {
         return """
             {
-                "pageSize": 1,
-                "pageNum": 1,
-                "totalPages": 1,
-                "totalNotamCount": 1,
-                "items": [{
-                    "notam": {
-                        "id": "NOTAM-001",
-                        "text": "TEST NOTAM",
-                        "effectiveStart": "2026-03-01T00:00:00Z",
-                        "effectiveEnd": "2026-04-01T00:00:00Z",
-                        "coordinates": "35.2226N 097.4395W"
-                    }
-                }]
+              "items": [
+                {
+                  "icaoId": "KOKC",
+                  "notamId": "A1234/26",
+                  "issueDate": "2026-03-01T00:00:00Z",
+                  "effectiveStartDate": "2026-03-01T00:00:00Z",
+                  "effectiveEndDate": "2026-03-02T00:00:00Z",
+                  "classification": "DOMESTIC",
+                  "accountId": "TEST",
+                  "location": "KOKC",
+                  "facilityName": "TEST AIRPORT",
+                  "type": "N",
+                  "keyword": "RWY",
+                  "number": "A1234/26",
+                  "text": "RWY CLOSED"
+                }
+              ]
             }
             """;
     }
@@ -71,63 +84,56 @@ class FAAClientTest {
     private String emptyJson() {
         return """
             {
-                "pageSize": 0,
-                "pageNum": 1,
-                "totalPages": 1,
-                "totalNotamCount": 0,
-                "items": []
+              "items": []
             }
             """;
     }
 
     @Test
     void fetchAllNotams_nullLocation_throwsIllegalArgument() {
-        assertThrows(IllegalArgumentException.class,
-            () -> faaClient.fetchAllNotams(null));
+        assertThrows(IllegalArgumentException.class, () -> faaClient.fetchAllNotams(null));
     }
 
     @Test
     void fetchAllNotams_blankLocation_throwsIllegalArgument() {
-        assertThrows(IllegalArgumentException.class,
-            () -> faaClient.fetchAllNotams("   "));
+        assertThrows(IllegalArgumentException.class, () -> faaClient.fetchAllNotams("   "));
     }
 
     @Test
     void fetchAllNotams_singlePage_returnsNotams() throws Exception {
         setupResponseChain(
-            mockResponse(200, singleNotamJson()),
-            mockResponse(200, emptyJson())
+                mockResponse(200, singleNotamJson()),
+                mockResponse(200, emptyJson())
         );
 
         List<NOTAM> result = faaClient.fetchAllNotams("KOKC");
 
-        assertFalse(result.isEmpty());
+        assertNotNull(result);
         assertEquals(1, result.size());
     }
 
     @Test
     void fetchAllNotams_multiplePages_aggregatesResults() throws Exception {
         setupResponseChain(
-            mockResponse(200, singleNotamJson()),
-            mockResponse(200, singleNotamJson()),
-            mockResponse(200, emptyJson())
+                mockResponse(200, singleNotamJson()),
+                mockResponse(200, singleNotamJson()),
+                mockResponse(200, emptyJson())
         );
 
         List<NOTAM> result = faaClient.fetchAllNotams("KOKC");
 
+        assertNotNull(result);
         assertEquals(2, result.size());
     }
 
     @Test
     void fetchAllNotams_serverError_throwsRuntimeException() throws Exception {
-        setupResponseChain(
-            mockResponse(500, "Internal Server Error")
-        );
+        setupResponseChain(mockResponse(500, "Internal Server Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> faaClient.fetchAllNotams("KOKC"));
+                () -> faaClient.fetchAllNotams("KOKC"));
 
-        assertTrue(ex.getMessage().contains("500"));
+        assertTrue(ex.getMessage().contains("FAA API error code: 500"));
     }
 
     @Test
@@ -139,17 +145,17 @@ class FAAClientTest {
             );
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> faaClient.fetchAllNotams("KOKC"));
+                () -> faaClient.fetchAllNotams("KOKC"));
 
-        assertTrue(ex.getMessage().contains("unreachable"));
+        assertTrue(ex.getMessage().contains("FAA API unreachable"));
     }
 
     @Test
     void fetchAllNotams_rateLimited_retriesAndSucceeds() throws Exception {
         setupResponseChain(
-            mockResponse(429, ""),
-            mockResponse(200, singleNotamJson()),
-            mockResponse(200, emptyJson())
+                mockResponse(429, ""),
+                mockResponse(200, singleNotamJson()),
+                mockResponse(200, emptyJson())
         );
 
         List<NOTAM> result = faaClient.fetchAllNotams("KOKC");
@@ -160,5 +166,4 @@ class FAAClientTest {
             ArgumentMatchers.<HttpResponse.BodyHandler<String>>any()
         );
     }
-
 }

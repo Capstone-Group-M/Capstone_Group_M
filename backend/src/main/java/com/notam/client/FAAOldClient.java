@@ -36,7 +36,8 @@ public class FAAOldClient {
         this.client = client;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-}   
+    }
+    
     public static boolean isValidIcao(String code){
         return code != null && code.matches("[A-Z]{4}");
     }
