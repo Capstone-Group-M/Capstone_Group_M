@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.time.ZonedDateTime;
 
 public class NOTAMRankingTest {
 
@@ -48,8 +49,12 @@ public class NOTAMRankingTest {
         // Create NOTAMs
         NOTAM closeNOTAM = new NOTAM("1", "001", "Somewhere");
         closeNOTAM.setCoordinates("0000N0050E"); // approx 0N 5E so on route
+        closeNOTAM.setEffectiveStart(ZonedDateTime.now().minusHours(1));
+
         NOTAM farNOTAM = new NOTAM("2", "002", "FarAway");
         farNOTAM.setCoordinates("0100N0050E"); // 1 deg north which is about ~60 NM away
+        farNOTAM.setEffectiveStart(ZonedDateTime.now().plusHours(10));
+
         NOTAM nullNOTAM = new NOTAM("3", "003", "Unknown");
         nullNOTAM.setCoordinates(null); // should be skipped
 
@@ -63,7 +68,7 @@ public class NOTAMRankingTest {
     }
 
     // Testing rank again with more NOTAMs
-    // This one is more sorting based
+    // This one is more sorting based for scoring
     @Test
     void testRankNOTAMsSort() {
 
@@ -77,25 +82,29 @@ public class NOTAMRankingTest {
         // NOTAM directly on route
         NOTAM notam1 = new NOTAM("1", "001", "A");
         notam1.setCoordinates("0000N0050E");
+        notam1.setEffectiveStart(ZonedDateTime.now().minusHours(1));
 
         // NOTAM slightly north
         NOTAM notam2 = new NOTAM("2", "002", "B");
         notam2.setCoordinates("0030N0050E");
+        notam2.setEffectiveStart(ZonedDateTime.now().plusHours(2));
 
         // NOTAM farther north
-        NOTAM n3 = new NOTAM("3", "003", "C");
-        n3.setCoordinates("0100N0050E");
+        NOTAM notam3 = new NOTAM("3", "003", "C");
+        notam3.setCoordinates("0100N0050E");
+        notam3.setEffectiveStart(ZonedDateTime.now().plusHours(48));
 
         // List of notams not in sorted order to see if they are actually sorted
-        List<NOTAM> notams = List.of(n3, notam1, notam2); 
+        List<NOTAM> notams = List.of(notam3, notam1, notam2); 
 
         // Rank NOTAMs
         List<NOTAM> ranked = ranking.rankNOTAMs(departure, destination, corridorNM, notams);
 
         // Check order: closest first
-        assertEquals("1", ranked.get(0).getId());
-        assertEquals("2", ranked.get(1).getId());
-        assertEquals("3", ranked.get(2).getId());
+        assertEquals(3, ranked.size(), "All NOTAMs should be within the wide corridor.");
+        assertEquals("1", ranked.get(0).getId(), "On route active NOTAM should rank first.");
+        assertEquals("2", ranked.get(1).getId(), "Mid distance soon active should rank second");
+        assertEquals("3", ranked.get(2).getId(), "Far and future NOTAM should rank last");
     }
 
     // Testing to see if it removes all NOTAMS since they are outside
@@ -285,5 +294,52 @@ public class NOTAMRankingTest {
         assertEquals("1", result.get(0).getId());
         assertEquals("2", result.get(1).getId());
     }
+
+    // Test that a NOTAM with null coordinates is skipped and does not cause an error
+    @Test
+    void testRankNOTAMsNullCoordinateSkipped() {
+
+        // Setup
+        Coordinate departure = new Coordinate(0,0);
+        Coordinate destination = new Coordinate(0,10);
+        double corridorNM = 200.0;
+        NOTAMRanking ranking = new NOTAMRanking();
+
+        // Valid NOTAM
+        NOTAM validNOTAM = new NOTAM("1", "001", "Valid");
+        validNOTAM.setCoordinates("0000N0050E");
+        validNOTAM.setEffectiveStart(ZonedDateTime.now().minusHours(1));
+
+        // Null NOTAM
+        NOTAM nullNOTAM = new NOTAM("2", "002", "NullCoord");
+        nullNOTAM.setCoordinates(null);
+
+        // RAnking
+        List<NOTAM> ranked = ranking.rankNOTAMs(departure, destination, corridorNM, List.of(validNOTAM, nullNOTAM));
+
+        assertEquals(1, ranked.size(), "Null coordinate NOTAM should be skipped");
+        assertEquals("1", ranked.get(0).getId());
+    }
+
+    // Test that a NOTAM with null effectiveStart still gets ranked (defaults to score 5)
+    @Test
+    void testRankNOTAMsNullStartTime() {
+        // Setup
+        Coordinate departure = new Coordinate(0,0);
+        Coordinate destination = new Coordinate(0,10);
+        double corridorNM = 200.0;
+        NOTAMRanking ranking = new NOTAMRanking();
+
+        // NOTAM with null time
+        NOTAM nullTimeNOTAM = new NOTAM("1", "001", "NullTime");
+        nullTimeNOTAM.setCoordinates("0000N0050E");
+        nullTimeNOTAM.setEffectiveStart(null); // should default to time score of 5
+
+        // Ranking
+        List<NOTAM> ranked = ranking.rankNOTAMs(departure, destination, corridorNM, List.of(nullTimeNOTAM));
+
+        assertEquals(1, ranked.size(), "NOTAM with null start time should still be ranked");
+    }
+
 
 }
