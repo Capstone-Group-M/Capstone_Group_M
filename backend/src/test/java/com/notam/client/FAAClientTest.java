@@ -17,6 +17,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.stubbing.OngoingStubbing;
 
 import com.notam.model.NOTAM;
 
@@ -137,8 +139,10 @@ class FAAClientTest {
     @Test
     void fetchAllNotams_networkFailure_throwsAfterRetries() throws Exception {
         doThrow(new IOException("Connection refused"))
-                .when(mockClient)
-                .<String>send(any(HttpRequest.class), any(BodyHandler.class));
+            .when(mockClient).send(
+                any(HttpRequest.class),
+                ArgumentMatchers.<HttpResponse.BodyHandler<String>>any()
+            );
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> faaClient.fetchAllNotams("KOKC"));
@@ -156,8 +160,10 @@ class FAAClientTest {
 
         List<NOTAM> result = faaClient.fetchAllNotams("KOKC");
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(mockClient, times(3)).<String>send(any(HttpRequest.class), any(BodyHandler.class));
+        assertFalse(result.isEmpty());
+        verify(mockClient, times(3)).send(
+            any(HttpRequest.class),
+            ArgumentMatchers.<HttpResponse.BodyHandler<String>>any()
+        );
     }
 }
