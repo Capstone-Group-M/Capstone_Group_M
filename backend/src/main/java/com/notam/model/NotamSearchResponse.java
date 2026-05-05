@@ -6,9 +6,9 @@ public class NotamSearchResponse {
     private final String departure;
     private final String destination;
     private final int count;
-    private final List<NotamDto> notams;
+    private final List<NOTAM> notams;
 
-    public NotamSearchResponse(String departure, String destination, List<NotamDto> notams) {
+    public NotamSearchResponse(String departure, String destination, List<NOTAM> notams) {
         this.departure = departure;
         this.destination = destination;
         this.notams = notams;
@@ -27,7 +27,7 @@ public class NotamSearchResponse {
         return count;
     }
 
-    public List<NotamDto> getNotams() {
+    public List<NOTAM> getNotams() {
         return notams;
     }
 }
