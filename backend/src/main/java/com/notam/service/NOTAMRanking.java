@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.time.ZonedDateTime;
 
 /*
 STEP 0: Perform base filter of bounding box
 STEP 1: Compute route distance (great circle path)
 STEP 2: Compute cross-track distance (and filter by corridor width)
+STEP 3: Compute scoring (location + time)
 */
 public class NOTAMRanking {
 
@@ -24,7 +26,11 @@ public class NOTAMRanking {
         List<NOTAM> boxedNotams = boundingBox(departure, destination, corridorNM, notams);
 
         // HashMap to store computed distances of NOTAMs to flight route
-        Map<NOTAM, Double> notamDistance = new HashMap<>();
+        // Not used anymore
+        //Map<NOTAM, Double> notamDistance = new HashMap<>();
+
+        // Score computed scores
+        Map<NOTAM, Double> notamScore = new HashMap<>();
 
         // List to store filtered NOTAMs
         List<NOTAM> filteredNotams = new ArrayList<>();
@@ -51,14 +57,38 @@ public class NOTAMRanking {
             if (distance <= corridorNM) {
                 // If within add into the list/map
                 filteredNotams.add(notam);
-                notamDistance.put(notam, distance);
+                // notamDistance.put(notam, distance); NOT USED ANYMORE
+
+                // SCORING HERE
+                double locationScore = scoringBasedOnLocation(distance, corridorNM);
+
+                // Time score (this is based on current time, not passed departure time)
+                ZonedDateTime startTime = notam.getEffectiveStart();
+                double timeScore = scoringBasedOnTime(startTime);
+
+                // WEIGHTS (these can be changed)
+                double locationWeight = 0.6;
+                double timeWeight = 0.4;
+
+                double finalScore = (locationScore * locationWeight) + (timeScore * timeWeight);
+
+                notamScore.put(notam, finalScore);
+
             }
         }
 
+        // Commented out, but was used to return filtered notams by distance
+        /*
         // Sort filtered NOTAMs from closest to farthest
         filteredNotams.sort((n1, n2) -> Double.compare(notamDistance.get(n1), notamDistance.get(n2)));
 
         // Return the sorted list
+        return filteredNotams;
+        */
+
+        // Sort by highest score
+        filteredNotams.sort((n1, n2) -> Double.compare(notamScore.get(n2), notamScore.get(n1)));
+
         return filteredNotams;
     }
 
@@ -169,6 +199,45 @@ public class NOTAMRanking {
                 Math.cos(latitude2) * Math.cos(longitude2 - longitude1);
 
             return Math.atan2(y, x);
+    }
+
+    // Scoring based on location
+    private double scoringBasedOnLocation(double distanceNM, double corridorNM)
+    {
+        double score = 10 * (1 - (distanceNM / corridorNM));
+        return Math.max(score, 0);
+    }
+
+    // Scoring based on time (step function)
+    private double scoringBasedOnTime(ZonedDateTime startTime)
+    {
+        // null check, return middle value
+        if (startTime == null)
+        {
+            return 5;
         }
+
+        // Get current time
+        ZonedDateTime now = ZonedDateTime.now();
+        // ZonedDateTime now = ZonedDateTime.now(startTime.getZone()); (Timezone consistent, but depends on how we store)
+
+        // Active
+        if(!now.isBefore(startTime))
+        {
+            return 10;
+        }
+
+        // Hours before NOTAM is active
+        long hours = java.time.Duration.between(now, startTime).toHours();
+
+        // These can be changed but values assigned for now
+        if (hours <= 3) return 8;
+        if (hours <= 6) return 7;
+        if (hours <= 9) return 6;
+        if (hours <= 24) return 3;
+
+        // Anything else, return 1
+        return 1;
+    }
     
 }
