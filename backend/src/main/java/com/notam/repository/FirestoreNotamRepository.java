@@ -58,6 +58,26 @@ public class FirestoreNotamRepository implements NotamRepository {
         }
     }
 
+ @Override
+public List<NOTAM> findAll() {
+    try {
+        List<NOTAM> results = new ArrayList<>();
+
+        ApiFuture<QuerySnapshot> future = notamsCollection().get();
+
+        for (QueryDocumentSnapshot doc : future.get().getDocuments()) {
+            results.add(fromDocument(doc));
+        }
+
+        return results;
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IllegalStateException("Interrupted while reading all NOTAMs from Firestore", e);
+    } catch (ExecutionException e) {
+        throw new IllegalStateException("Failed to read all NOTAMs from Firestore", e);
+    }
+}
+
     @Override
     public void saveAll(List<NOTAM> notams) {
         if (notams == null || notams.isEmpty()) {

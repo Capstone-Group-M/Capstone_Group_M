@@ -114,6 +114,43 @@ public class NotamService {
         return notamDtos;
     }
 
+    public NotamSearchResponse getStoredNotamsForRoute(
+        String departure,
+        String destination,
+        double corridorNM) {
+
+    if (notamRepository == null) {
+        throw new IllegalStateException(
+                "Firestore storage is not enabled. Set firestore.enabled=true and configure GOOGLE_APPLICATION_CREDENTIALS.");
+    }
+
+    String normalizedDeparture = normalizeIcao(departure);
+    String normalizedDestination = normalizeIcao(destination);
+
+    List<NOTAM> all = notamRepository.findAll();
+
+    List<NOTAM> filtered = all.stream()
+            .filter(n -> {
+                String loc = n.getIcaoLocation();
+                if (loc == null) {
+                    return false;
+                }
+
+                return loc.equalsIgnoreCase(normalizedDeparture)
+                        || loc.equalsIgnoreCase(normalizedDestination);
+            })
+            .toList();
+
+    List<NOTAM> deduped = NOTAMUtils.removeDuplicates(filtered);
+    List<NotamDto> notamDtos = toDtos(deduped);
+
+    return new NotamSearchResponse(
+            normalizedDeparture,
+            normalizedDestination,
+            notamDtos
+    );
+}
+
     private static String normalizeIcao(String icaoLocation) {
         if (icaoLocation == null || icaoLocation.isBlank()) {
             throw new IllegalArgumentException("ICAO location is required");

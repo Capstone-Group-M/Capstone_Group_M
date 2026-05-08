@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.*;
 import com.notam.NotamService;
 import com.notam.model.NOTAM;
+import com.notam.model.NotamSearchResponse;
 
 /**
  * REST controller that exposes an HTTP endpoint for fetching NOTAMs.
@@ -20,24 +21,21 @@ public class NotamController {
         this.notamService = notamService;
     }
 
-    /**
-     * GET /api/notams?icaoLocation=KOKC
-     * Returns a deduplicated list of NOTAMs for the given ICAO location code.
-     *
-     * @param icaoLocation the ICAO airport code to query (e.g. "KOKC")
-     * @return list of NOTAM objects as JSON
-     */
     @GetMapping
-    public List<NOTAM> getNotams(@RequestParam String icaoLocation) throws Exception {
-        return notamService.getNotams(icaoLocation);
-    }
+public List<NOTAM> getNotams(@RequestParam("icaoLocation") String icaoLocation) throws Exception {
+    return notamService.getNotams(icaoLocation);
+}
 
-    /**
-     * GET /notams/stored?icaoLocation=KOKC
-     * Returns NOTAMs that were previously stored in Firestore for the given ICAO location.
-     */
-    @GetMapping("/stored")
-    public List<NOTAM> getStoredNotams(@RequestParam String icaoLocation) {
-        return notamService.getStoredNotams(icaoLocation);
-    }
+@GetMapping("/stored")
+public List<NOTAM> getStoredNotams(@RequestParam("icaoLocation") String icaoLocation) {
+    return notamService.getStoredNotams(icaoLocation);
+}
+
+@GetMapping("/stored/route")
+public NotamSearchResponse getStoredNotamsForRoute(
+        @RequestParam("departure") String departure,
+        @RequestParam("destination") String destination,
+        @RequestParam(value = "corridorNM", defaultValue = "25") double corridorNM) {
+    return notamService.getStoredNotamsForRoute(departure, destination, corridorNM);
+}
 }

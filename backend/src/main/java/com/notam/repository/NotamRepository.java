@@ -7,4 +7,5 @@ public interface NotamRepository {
     void save(NOTAM notam);
     void saveAll(List<NOTAM> notams);
     List<NOTAM> findByIcaoLocation(String icaoLocation);
+    List<NOTAM> findAll();
 }
