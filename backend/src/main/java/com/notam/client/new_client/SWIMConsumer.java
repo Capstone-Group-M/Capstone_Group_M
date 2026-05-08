@@ -3,6 +3,11 @@ package com.notam.client.new_client;
 import com.solacesystems.jms.SupportedProperty;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.Config;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.notam.model.NOTAM;
+import com.notam.parser.NotamParser;
+import com.notam.repository.FirestoreNotamRepository;
+import com.notam.repository.NotamRepository;
 
 import org.json.JSONObject;
 import org.json.XML;
@@ -43,6 +48,8 @@ public class SWIMConsumer implements MessageListener {
     private final String vpn;
     private final String outputFile;
     private final boolean json;
+    private final NotamParser notamParser = new NotamParser(new ObjectMapper());
+    private final NotamRepository notamRepository;
 
     /**
      * Creates a new SWIMConsumer with connection and output settings.
@@ -58,6 +65,12 @@ public class SWIMConsumer implements MessageListener {
      */
     public SWIMConsumer(String providerUrl, String queue, String connectionFactory,
                         String username, String password, String vpn, String outputFile, Boolean json) {
+        this(providerUrl, queue, connectionFactory, username, password, vpn, outputFile, json, null);
+    }
+
+    public SWIMConsumer(String providerUrl, String queue, String connectionFactory,
+                        String username, String password, String vpn, String outputFile, Boolean json,
+                        NotamRepository notamRepository) {
         this.providerUrl = providerUrl;
         this.queue = queue;
         this.connectionFactory = connectionFactory;
@@ -66,6 +79,7 @@ public class SWIMConsumer implements MessageListener {
         this.vpn = vpn;
         this.outputFile = outputFile;
         this.json = json;
+        this.notamRepository = notamRepository;
     }
 
     /**
@@ -152,6 +166,7 @@ public class SWIMConsumer implements MessageListener {
             }
 
             writeToFile(output);
+            saveToFirestore(jsonObj);
             System.out.println("US NOTAM received: " + icao);
 
         } catch (Exception e) {
@@ -264,6 +279,24 @@ public class SWIMConsumer implements MessageListener {
         }
     }
 
+
+    /**
+     * Parses the SWIM JSON payload into the project NOTAM model and upserts it into Firestore
+     * when a repository has been configured. The text-file output remains as a local audit log.
+     *
+     * @param jsonObj parsed SWIM AIXM payload
+     */
+    private void saveToFirestore(JSONObject jsonObj) {
+        if (notamRepository == null) {
+            return;
+        }
+
+        NOTAM notam = notamParser.parseSWIMNotam(jsonObj);
+        if (notam != null) {
+            notamRepository.save(notam);
+        }
+    }
+
     /**
      * Entry point for running the SWIM consumer as a standalone application.
      * Loads all connection settings from {@code application.conf} on the
@@ -276,6 +309,11 @@ public class SWIMConsumer implements MessageListener {
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load();
 
+        NotamRepository repository = null;
+        if (config.hasPath("firestore.enabled") && config.getBoolean("firestore.enabled")) {
+            repository = new FirestoreNotamRepository();
+        }
+
         SWIMConsumer consumer = new SWIMConsumer(
             config.getString("providerUrl"),
             config.getString("queue"),
@@ -284,7 +322,8 @@ public class SWIMConsumer implements MessageListener {
             config.getString("password"),
             config.getString("vpn"),
             config.getString("output"),
-            config.getBoolean("json")
+            config.getBoolean("json"),
+            repository
         );
         consumer.connect();
 

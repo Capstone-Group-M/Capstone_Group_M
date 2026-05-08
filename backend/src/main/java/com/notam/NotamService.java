@@ -7,6 +7,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +16,7 @@ import com.notam.model.NOTAM;
 import com.notam.model.NOTAMUtils;
 import com.notam.model.NotamDto;
 import com.notam.model.NotamSearchResponse;
+import com.notam.repository.NotamRepository;
 
 @Service
 public class NotamService {
@@ -22,8 +24,15 @@ public class NotamService {
     private static final String CLIENT_ID = "5982191bfef7458aa9cb8e8c9674b645";
     private static final String CLIENT_SECRET = System.getenv("FAA_CLIENT_SECRET");
 
+    private final NotamRepository notamRepository;
+
+    public NotamService(ObjectProvider<NotamRepository> notamRepositoryProvider) {
+        this.notamRepository = notamRepositoryProvider.getIfAvailable();
+    }
+
     public List<NOTAM> getNotams(String icaoLocation) throws Exception {
-        String url = "https://external-api.faa.gov/notamapi/v1/notams?icaoLocation=" + icaoLocation;
+        String normalizedIcao = normalizeIcao(icaoLocation);
+        String url = "https://external-api.faa.gov/notamapi/v1/notams?icaoLocation=" + normalizedIcao;
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -41,21 +50,32 @@ public class NotamService {
 
         List<NOTAM> notamList = new ArrayList<>();
 
-        for (JsonNode notamNode : items) {
-            JsonNode data = notamNode.path("properties")
-                                     .path("coreNOTAMData")
-                                     .path("notam");
+        if (items != null && items.isArray()) {
+            for (JsonNode notamNode : items) {
+                JsonNode data = notamNode.path("properties")
+                                         .path("coreNOTAMData")
+                                         .path("notam");
 
-            NOTAM notam = new NOTAM();
-            notam.setId(data.path("id").asText());
-            notam.setNumber(data.path("number").asText());
-            notam.setText(data.path("text").asText());
-            notam.setIcaoLocation(icaoLocation);
+                NOTAM notam = new NOTAM();
+                notam.setId(data.path("id").asText(null));
+                notam.setNumber(data.path("number").asText(null));
+                notam.setText(data.path("text").asText(null));
+                notam.setIcaoLocation(normalizedIcao);
 
-            notamList.add(notam);
+                notamList.add(notam);
+            }
         }
 
-        return NOTAMUtils.removeDuplicates(notamList);
+        List<NOTAM> deduped = NOTAMUtils.removeDuplicates(notamList);
+        saveToFirestore(deduped);
+        return deduped;
+    }
+
+    public List<NOTAM> getStoredNotams(String icaoLocation) {
+        if (notamRepository == null) {
+            throw new IllegalStateException("Firestore storage is not enabled. Set firestore.enabled=true and configure GOOGLE_APPLICATION_CREDENTIALS.");
+        }
+        return NOTAMUtils.removeDuplicates(notamRepository.findByIcaoLocation(normalizeIcao(icaoLocation)));
     }
 
     public NotamSearchResponse getNotamsForRoute(String departure, String destination) {
@@ -65,22 +85,39 @@ public class NotamService {
             combined.addAll(getNotams(destination));
 
             List<NOTAM> deduped = NOTAMUtils.removeDuplicates(combined);
-            List<NotamDto> notamDtos = new ArrayList<>();
-
-            for (NOTAM notam : deduped) {
-                notamDtos.add(new NotamDto(
-                        notam.getId(),
-                        notam.getIcaoLocation(),
-                        notam.getEffectiveStart() != null ? notam.getEffectiveStart().toString() : null,
-                        notam.getEffectiveEnd() != null ? notam.getEffectiveEnd().toString() : null,
-                        notam.getClassification(),
-                        notam.getText()
-                ));
-            }
+            List<NotamDto> notamDtos = toDtos(deduped);
 
             return new NotamSearchResponse(departure, destination, notamDtos);
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch NOTAMs for route", e);
         }
+    }
+
+    private void saveToFirestore(List<NOTAM> notams) {
+        if (notamRepository != null) {
+            notamRepository.saveAll(notams);
+        }
+    }
+
+    private static List<NotamDto> toDtos(List<NOTAM> notams) {
+        List<NotamDto> notamDtos = new ArrayList<>();
+        for (NOTAM notam : notams) {
+            notamDtos.add(new NotamDto(
+                    notam.getId(),
+                    notam.getIcaoLocation(),
+                    notam.getEffectiveStart() != null ? notam.getEffectiveStart().toString() : null,
+                    notam.getEffectiveEnd() != null ? notam.getEffectiveEnd().toString() : null,
+                    notam.getClassification(),
+                    notam.getText()
+            ));
+        }
+        return notamDtos;
+    }
+
+    private static String normalizeIcao(String icaoLocation) {
+        if (icaoLocation == null || icaoLocation.isBlank()) {
+            throw new IllegalArgumentException("ICAO location is required");
+        }
+        return icaoLocation.trim().toUpperCase();
     }
 }

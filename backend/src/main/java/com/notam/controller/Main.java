@@ -12,6 +12,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.notam.utils.AirportDataUtil;
 import com.notam.service.*;
+import com.notam.repository.FirestoreNotamRepository;
+import com.notam.repository.NotamRepository;
 
 public class Main {
 
@@ -155,6 +157,11 @@ public class Main {
 
         Config config = ConfigFactory.load();
 
+        NotamRepository repository = null;
+        if (config.hasPath("firestore.enabled") && config.getBoolean("firestore.enabled")) {
+            repository = new FirestoreNotamRepository();
+        }
+
         SWIMConsumer consumer = new SWIMConsumer(
             config.getString("providerUrl"),
             config.getString("queue"),
@@ -163,7 +170,8 @@ public class Main {
             config.getString("password"),
             config.getString("vpn"),
             config.getString("output"),
-            config.getBoolean("json")
+            config.getBoolean("json"),
+            repository
         );
         consumer.connect();
 

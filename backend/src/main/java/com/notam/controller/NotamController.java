@@ -31,4 +31,13 @@ public class NotamController {
     public List<NOTAM> getNotams(@RequestParam String icaoLocation) throws Exception {
         return notamService.getNotams(icaoLocation);
     }
+
+    /**
+     * GET /notams/stored?icaoLocation=KOKC
+     * Returns NOTAMs that were previously stored in Firestore for the given ICAO location.
+     */
+    @GetMapping("/stored")
+    public List<NOTAM> getStoredNotams(@RequestParam String icaoLocation) {
+        return notamService.getStoredNotams(icaoLocation);
+    }
 }
